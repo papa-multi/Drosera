@@ -343,18 +343,18 @@ check_status "Creating drosera.toml"
 # Deploy Trap
 echo "Deploying Trap..."
 cd ~/my-drosera-trap
-trap_output=$(DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply 2>&1)
+DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap deployment"
-echo "Trap deployment output: $trap_output"
 
 # Step 4.1: Extract Trap Address
-echo "Step 4.1: Extracting Trap Address from deployment output..."
-TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'address: \K0x[a-fA-F0-9]{40}')
-if [[ -z "$TRAP_ADDRESS" ]]; then
-    echo "Error: Failed to extract Trap Address from deployment output."
+echo "Step 4.1: Please provide the Trap Config address from the deployment output (e.g., 0x...)."
+echo "You can find it in the terminal output or by checking the transaction on https://holesky.etherscan.io/."
+read -p "Enter the Trap Config address: " TRAP_ADDRESS
+if [[ ! "$TRAP_ADDRESS" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+    echo "Error: Invalid Trap Config address format."
     exit 1
 fi
-echo "Trap Address extracted: $TRAP_ADDRESS"
+echo "Trap Address provided: $TRAP_ADDRESS"
 
 # Update drosera.toml with Trap Address
 echo "Updating drosera.toml with Trap Address..."

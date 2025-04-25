@@ -110,7 +110,7 @@ max_attempts=3
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Installing Drosera CLI..."
-    sudo bash -c "$(curl -L https://app.drosera.io/install)"
+    curl -L https://app.drosera.io/install | bash
     sleep 3
     source /root/.bashrc
     sleep 2
@@ -157,7 +157,7 @@ max_attempts=3
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Installing Foundry CLI..."
-    sudo bash -c "$(curl -L https://foundry.paradigm.xyz)"
+    curl -L https://foundry.paradigm.xyz | bash
     sleep 3
     source /root/.bashrc
     sleep 2
@@ -204,7 +204,7 @@ max_attempts=3
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Installing Bun CLI..."
-    sudo bash -c "$(curl -fsSL https://bun.sh/install)"
+    curl -fsSL https://bun.sh/install | bash
     sleep 3
     source /root/.bashrc
     sleep 2
@@ -240,11 +240,14 @@ source /root/.bashrc
 
 # Step 4: Trap Setup
 echo "Step 4: Setting up and deploying Trap..."
+mkdir my-drosera-trap
+cd my-drosera-trap || { echo "Error: Cannot change to my-drosera-trap directory."; exit 1; }
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
 forge init -t drosera-network/trap-foundry-template
 check_status "Forge init"
-cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+curl -fsSL https://bun.sh/install | bash
+source /root/.bashrc
 bun install
 forge build
 check_status "Forge build"
@@ -253,7 +256,26 @@ source /root/.bashrc
 # Deploy Trap
 echo "Deploying Trap..."
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
-DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+max_attempts=3
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Deploying Trap..."
+    DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+    if [[ $? -eq 0 ]]; then
+        echo "Success: Trap deployed."
+        break
+    else
+        echo "Failed to deploy Trap."
+        ((attempt++))
+        if [[ $attempt -le $max_attempts ]]; then
+            echo "Retrying in 10 seconds..."
+            sleep 10
+        else
+            echo "Error: Failed to deploy Trap after $max_attempts attempts."
+            exit 1
+        fi
+    fi
+done
 check_status "Trap deployment"
 source /root/.bashrc
 
@@ -292,7 +314,26 @@ check_status "Appending new whitelist to drosera.toml"
 echo "Waiting 120 seconds to ensure cooldown period has elapsed..."
 sleep 120
 echo "Updating Trap configuration..."
-DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+max_attempts=3
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Updating Trap configuration..."
+    DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+    if [[ $? -eq 0 ]]; then
+        echo "Success: Trap configuration updated."
+        break
+    else
+        echo "Failed to update Trap configuration."
+        ((attempt++))
+        if [[ $attempt -le $max_attempts ]]; then
+            echo "Retrying in 10 seconds..."
+            sleep 10
+        else
+            echo "Error: Failed to update Trap configuration after $max_attempts attempts."
+            exit 1
+        fi
+    fi
+done
 check_status "Trap configuration update"
 source /root/.bashrc
 

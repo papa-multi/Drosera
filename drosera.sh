@@ -338,17 +338,26 @@ check_status "Trap configuration update"
 source /root/.bashrc
 
 # Step 6: Install Operator CLI
-echo "Step 6: Installing Operator CLI..."
+echo "Step 6: Installing Operator CLI and pulling Docker image..."
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
+sleep 2
 tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
+sleep 2
 ./drosera-operator --version
 check_status "Operator CLI installation"
+sleep 2
 sudo cp drosera-operator /usr/bin
+sleep 2
 drosera-operator
 check_status "Operator CLI global setup"
+sleep 2
+echo "Pulling Drosera Operator Docker image..."
+docker pull ghcr.io/drosera-network/drosera-operator:latest
+check_status "Docker image pull"
 source /root/.bashrc
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+
 
 # Step 7: Register Operators
 echo "Step 7: Registering Operators..."

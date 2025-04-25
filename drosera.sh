@@ -244,15 +244,18 @@ while [[ $attempt -le $max_attempts ]]; do
     output=$(curl -L https://app.drosera.io/install | bash 2>&1)
     echo "Installer output: $output"
     
-    # Source .bashrc multiple times to ensure PATH is updated
+    # Source .bashrc multiple times with delay
     source /root/.bashrc
+    sleep 2
     source /root/.bashrc
+    sleep 2
     
     # Manually add Drosera bin path to PATH
     if [[ -d "/root/.drosera/bin" ]]; then
         export PATH=$PATH:/root/.drosera/bin
         echo 'export PATH=$PATH:/root/.drosera/bin' >> /root/.bashrc
         source /root/.bashrc
+        sleep 2
     fi
     
     # Check if droseraup is available
@@ -262,6 +265,8 @@ while [[ $attempt -le $max_attempts ]]; do
         echo "droseraup output: $droseraup_output"
         
         # Verify drosera command
+        source /root/.bashrc
+        sleep 2
         if command -v drosera &> /dev/null; then
             echo "Success: Drosera CLI installed."
             break
@@ -288,6 +293,7 @@ while [[ $attempt -le $max_attempts ]]; do
     fi
 done
 source /root/.bashrc
+sleep 2
 check_status "Drosera CLI installation"
 
 # Install Foundry CLI
@@ -295,7 +301,9 @@ echo "Installing Foundry CLI..."
 cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
 curl -L https://foundry.paradigm.xyz | bash
 source /root/.bashrc
+sleep 2
 source /root/.bashrc
+sleep 2
 if command -v foundryup &> /dev/null; then
     foundryup
     check_status "Foundry CLI installation"
@@ -304,13 +312,16 @@ else
     exit 1
 fi
 source /root/.bashrc
+sleep 2
 
 # Install Bun CLI
 echo "Installing Bun CLI..."
 cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
 curl -fsSL https://bun.sh/install | bash
 source /root/.bashrc
+sleep 2
 source /root/.bashrc
+sleep 2
 if command -v bun &> /dev/null; then
     check_status "Bun installation"
 else
@@ -318,6 +329,7 @@ else
     exit 1
 fi
 source /root/.bashrc
+sleep 2
 
 # Step 4: Trap Setup
 echo "Step 4: Setting up and deploying Trap..."
@@ -433,6 +445,7 @@ echo "Checking Operator health..."
 docker logs -f drosera-node1
 
 # Step 14: Opt-in Trap
+echo "Step 14: Opting in to Trap..."
 read -p "Would you like to proceed with CLI opt-in for the first Operator? (y/n): " proceed_with_optin
 if [[ "$proceed_with_optin" == "y" ]]; then
     echo "Opting in via CLI for first Operator..."
@@ -519,6 +532,7 @@ EOF
     check_status "Second Operator setup"
     
     # Opt-in second operator
+    echo "Opting in second Operator..."
     read -p "Would you like to proceed with CLI opt-in for the second Operator? (y/n): " proceed_with_optin_second
     if [[ "$proceed_with_optin_second" == "y" ]]; then
         echo "Opting in via CLI for second Operator..."

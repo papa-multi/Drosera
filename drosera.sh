@@ -231,17 +231,65 @@ check_status "Docker installation"
 
 # Step 3: Install CLIs (Drosera, Foundry, Bun)
 echo "Step 3: Installing Drosera, Foundry, and Bun CLIs..."
-curl -L https://app.drosera.io/install | bash
+
+# Install Drosera CLI with retries
+echo "Installing Drosera CLI..."
+max_attempts=3
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Installing Drosera CLI..."
+    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+    curl -L https://app.drosera.io/install | bash
+    source /root/.bashrc
+    if command -v droseraup &> /dev/null; then
+        droseraup
+        if command -v drosera &> /dev/null; then
+            echo "Success: Drosera CLI installed."
+            break
+        else
+            echo "Drosera CLI installation failed."
+        fi
+    else
+        echo "droseraup command not found."
+    fi
+    ((attempt++))
+    if [[ $attempt -le $max_attempts ]]; then
+        echo "Retrying in 10 seconds..."
+        sleep 10
+    else
+        echo "Error: Failed to install Drosera CLI after $max_attempts attempts."
+        exit 1
+    fi
+done
 source /root/.bashrc
-droseraup
 check_status "Drosera CLI installation"
+
+# Install Foundry CLI
+echo "Installing Foundry CLI..."
+cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
 curl -L https://foundry.paradigm.xyz | bash
 source /root/.bashrc
-foundryup
-check_status "Foundry CLI installation"
+if command -v foundryup &> /dev/null; then
+    foundryup
+    check_status "Foundry CLI installation"
+else
+    echo "Error: foundryup command not found."
+    exit 1
+fi
+source /root/.bashrc
+
+# Install Bun CLI
+echo "Installing Bun CLI..."
+cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
 curl -fsSL https://bun.sh/install | bash
 source /root/.bashrc
-check_status "Bun installation"
+if command -v bun &> /dev/null; then
+    check_status "Bun installation"
+else
+    echo "Error: Bun command not found."
+    exit 1
+fi
+source /root/.bashrc
 
 # Step 4: Trap Setup
 echo "Step 4: Setting up and deploying Trap..."
@@ -419,7 +467,7 @@ services:
     container_name: drosera-node2
     ports:
       - "31315:31315"
-      - "31316:316"
+      - "31316:31316"
     volumes:
       - drosera_data2:/data
     command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 31316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key \${ETH_PRIVATE_KEY2} --listen-address 0.0.0.0 --network-external-p2p-address \${VPS_IP} --disable-dnr-confirmation true

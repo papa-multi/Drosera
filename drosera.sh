@@ -256,7 +256,7 @@ source /root/.bashrc
 # Deploy Trap
 echo "Deploying Trap..."
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
-max_attempts=3
+max_attempts=20
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Deploying Trap..."
@@ -268,7 +268,7 @@ while [[ $attempt -le $max_attempts ]]; do
         echo "Failed to deploy Trap."
         ((attempt++))
         if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
+            echo "Retrying in 60 seconds..."
             sleep 60
         else
             echo "Error: Failed to deploy Trap after $max_attempts attempts."

@@ -347,7 +347,8 @@ trap_output=$(DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply 2>&1)
 check_status "Trap deployment"
 echo "Trap deployment output: $trap_output"
 
-# Extract Trap Address from output
+# Step 4.1: Extract Trap Address
+echo "Step 4.1: Extracting Trap Address from deployment output..."
 TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'address: \K0x[a-fA-F0-9]{40}')
 if [[ -z "$TRAP_ADDRESS" ]]; then
     echo "Error: Failed to extract Trap Address from deployment output."
@@ -360,7 +361,7 @@ echo "Updating drosera.toml with Trap Address..."
 sed -i "s/address = \"0x0000000000000000000000000000000000000000\"/address = \"$TRAP_ADDRESS\"/" drosera.toml
 check_status "Updating drosera.toml with Trap Address"
 
-# Confirm Send Bloom
+# Step 4.2: Confirm Send Bloom
 echo "Please go to https://app.drosera.io/, open your Trap ($TRAP_ADDRESS), and click 'Send Bloom Boost' to deposit some Holesky ETH."
 read -p "Have you completed the Send Bloom on https://app.drosera.io/? (y/n): " bloom_confirmed
 if [[ "$bloom_confirmed" != "y" ]]; then

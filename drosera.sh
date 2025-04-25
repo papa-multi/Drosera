@@ -21,59 +21,6 @@ validate_private_key() {
     fi
 }
 
-# Function to retry drosera apply
-run_drosera_apply() {
-    local private_key=$1
-    local max_attempts=3
-    local attempt=1
-    local output=""
-    local cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply"
-    
-    validate_private_key "$private_key"
-
-    # Ensure we're in the correct directory
-    cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
-
-    # Check if drosera command is available
-    if ! command -v drosera &> /dev/null; then
-        echo "Error: drosera command not found. Ensure Drosera CLI is installed."
-        exit 1
-    fi
-
-    while [[ $attempt -le $max_attempts ]]; do
-        echo "Attempt $attempt/$max_attempts: Running: $cmd"
-        output=$(timeout 300 bash -c "$cmd" 2>&1)
-        local status=$?
-        
-        if [[ $status -eq 0 && "$output" =~ "Trap Config address: 0x" ]]; then
-            echo "Success: Trap deployed successfully!"
-            echo "Full output: $output"
-            echo "$output"
-            return 0
-        else
-            echo "Failed attempt $attempt: Status code: $status"
-            echo "Output: $output"
-            if [[ "$output" =~ "insufficient funds" ]]; then
-                echo "Error: Insufficient funds in wallet. Please fund your Holesky wallet and try again."
-                exit 1
-            elif [[ "$output" =~ "invalid private key" ]]; then
-                echo "Error: Invalid private key provided."
-                exit 1
-            fi
-        fi
-        
-        ((attempt++))
-        if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
-            sleep 10
-        fi
-    done
-
-    echo "Error: Failed to deploy Trap after $max_attempts attempts."
-    echo "Final output: $output"
-    exit 1
-}
-
 # Function to run drosera-operator optin with retries
 run_drosera_optin() {
     local private_key=$1
@@ -168,6 +115,7 @@ if [[ -z "$ETH_RPC_URL" ]]; then
 fi
 read -p "Enter your GitHub email: " GITHUB_EMAIL
 read -p "Enter your GitHub username: " GITHUB_USERNAME
+read -p "Enter the Trap Config address (e.g., 0x...): " TRAP_ADDRESS
 
 # Step 1: Update and Install Dependencies
 echo "Step 1: Updating system and installing dependencies..."
@@ -371,15 +319,11 @@ bun install
 forge build
 check_status "Forge build"
 
-# Deploy Trap and capture Trap Address
+# Deploy Trap
 echo "Deploying Trap..."
-trap_output=$(run_drosera_apply "$OPERATOR1_PRIVATE_KEY")
-TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'Trap Config address: \K0x[a-fA-F0-9]{40}')
-if [[ -z "$TRAP_ADDRESS" ]]; then
-    echo "Failed to capture Trap Address. Please check the output and enter it manually."
-    read -p "Enter Trap Address: " TRAP_ADDRESS
-fi
-echo "Trap Address captured: $TRAP_ADDRESS"
+cd ~/my-drosera-trap
+DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+check_status "Trap deployment"
 
 # Step 5: Whitelist Operators
 echo "Step 5: Whitelisting Operators..."
@@ -390,8 +334,8 @@ whitelist = ["$OPERATOR1_ADDRESS", "$OPERATOR2_ADDRESS"]
 EOF
 check_status "Updating drosera.toml"
 echo "Updating Trap configuration..."
-run_drosera_apply "$OPERATOR1_PRIVATE_KEY"
-echo "Trap is now private with both operator addresses whitelisted."
+DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+check_status "Trap configuration update"
 
 # Step 6: Install Operator CLI
 echo "Step 6: Installing Operator CLI..."

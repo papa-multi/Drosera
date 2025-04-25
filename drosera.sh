@@ -115,7 +115,6 @@ if [[ -z "$ETH_RPC_URL" ]]; then
 fi
 read -p "Enter your GitHub email: " GITHUB_EMAIL
 read -p "Enter your GitHub username: " GITHUB_USERNAME
-read -p "Enter the Trap Config address (e.g., 0x...): " TRAP_ADDRESS
 
 # Step 1: Update and Install Dependencies
 echo "Step 1: Updating system and installing dependencies..."
@@ -324,6 +323,15 @@ echo "Deploying Trap..."
 cd ~/my-drosera-trap
 DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap deployment"
+
+# Extract Trap Address from drosera.toml
+echo "Extracting Trap Address from drosera.toml..."
+TRAP_ADDRESS=$(grep 'address =' drosera.toml | sed -n 's/.*address = "\(0x[a-fA-F0-9]\{40\}\)".*/\1/p')
+if [[ -z "$TRAP_ADDRESS" ]]; then
+    echo "Error: Failed to extract Trap Address from drosera.toml."
+    exit 1
+fi
+echo "Trap Address extracted: $TRAP_ADDRESS"
 
 # Step 5: Whitelist Operators
 echo "Step 5: Whitelisting Operators..."

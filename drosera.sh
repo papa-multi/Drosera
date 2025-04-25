@@ -35,6 +35,14 @@ run_drosera_apply() {
     echo "$output"
 }
 
+# Clean up previous script runs
+echo "Cleaning up previous script runs..."
+sudo docker compose -f ~/Drosera-Network/docker-compose.yaml down -v 2>/dev/null
+sudo docker stop drosera-node1 drosera-node2 2>/dev/null
+sudo docker rm drosera-node1 drosera-node2 2>/dev/null
+sudo rm -rf ~/my-drosera-trap ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator
+check_status "Cleanup"
+
 # Install figlet for ASCII art if not present
 if ! command -v figlet &> /dev/null; then
     echo "Installing figlet for ASCII art..."
@@ -104,14 +112,12 @@ check_status "Bun installation"
 
 # Step 4: Trap Setup
 echo "Step 4: Setting up and deploying Trap..."
-mkdir -p my-drosera-trap
-cd my-drosera-trap
+mkdir -p ~/my-drosera-trap
+cd ~/my-drosera-trap
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
 forge init -t drosera-network/trap-foundry-template
 check_status "Forge init"
-curl -fsSL https://bun.sh/install | bash
-source /root/.bashrc
 bun install
 forge build
 check_status "Forge build"
@@ -122,9 +128,8 @@ trap_output=$(run_drosera_apply "$TRAP_PRIVATE_KEY" "$ETH_RPC_URL")
 if [[ "$trap_output" =~ "Error" && "$trap_output" =~ "429" ]]; then
     echo "RPC error detected. Retrying with user-provided RPC..."
     read -p "Enter a new Ethereum Holesky RPC URL: " NEW_RPC_URL
-    trap_output=$(run_droseraK apply" "$TRAP_PRIVATE_KEY" "$NEW_RPC_URL")
+    trap_output=$(run_drosera_apply "$TRAP_PRIVATE_KEY" "$NEW_RPC_URL")
 fi
-# Extract Trap Address (assuming output contains "Trap Config address: 0x...")
 TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'Trap Config address: \K0x[a-fA-F0-9]{40}')
 if [[ -z "$TRAP_ADDRESS" ]]; then
     echo "Failed to capture Trap Address. Please check the output and enter it manually."
@@ -146,13 +151,14 @@ confirm_action "Have you completed the Bloom Boost?"
 
 # Step 7: Fetch Blocks
 echo "Step 7: Fetching blocks..."
+cd ~/my-drosera-trap
 drosera dryrun
 check_status "drosera dryrun"
 
 # Step 8: Operator Setup - Whitelist Operator
 echo "Step 8: Whitelisting Operator..."
 cd ~/my-drosera-trap
-cat << EOF >> drosera.toml
+cat << EOF > drosera.toml
 private_trap = true
 whitelist = ["$OPERATOR_ADDRESS"]
 EOF
@@ -193,13 +199,8 @@ check_status "Firewall configuration"
 
 # Step 13: Configure and Run Operator (Docker Method)
 echo "Step 13: Configuring and running Operator using Docker..."
-if systemctl is-active --quiet drosera; then
-    sudo systemctl stop drosera
-    sudo systemctl disable drosera
-fi
-git clone https://github.com/0xmoei/Drosera-Network
-cd Drosera-Network
-cp .env.example .env
+mkdir -p ~/Drosera-Network
+cd ~/Drosera-Network
 cat << EOF > .env
 ETH_PRIVATE_KEY=$TRAP_PRIVATE_KEY
 VPS_IP=$VPS_IP
@@ -275,6 +276,8 @@ EOF
     cat << EOF > docker-compose.yaml
 version: '3'
 services:
+ंतर
+
   drosera1:
     image: ghcr.io/drosera-network/drosera-operator:latest
     container_name: drosera-node1

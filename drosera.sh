@@ -4,8 +4,8 @@
 # This script automates the setup process for deploying a Trap and two Operators on the Drosera testnet.
 # It includes a Crypton header and prompts users to follow https://x.com/0xCrypton_.
 
-# Ensure all commands are run in ~/my-drosera-trap
-cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+# Ensure we start in ~/Drosera
+cd ~/Drosera || { echo "Error: Cannot change to ~/Drosera directory."; exit 1; }
 
 # Function to check command success
 check_status() {
@@ -29,7 +29,7 @@ echo "Cleaning up previous script runs..."
 sudo docker compose -f ~/Drosera-Network/docker-compose.yaml down -v 2>/dev/null
 sudo docker stop drosera-node1 drosera-node2 2>/dev/null
 sudo docker rm drosera-node1 drosera-node2 2>/dev/null
-sudo rm -rf ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator
+sudo rm -rf ~/my-drosera-trap ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator
 check_status "Cleanup"
 source /root/.bashrc
 
@@ -244,6 +244,7 @@ git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
 forge init -t drosera-network/trap-foundry-template
 check_status "Forge init"
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 bun install
 forge build
 check_status "Forge build"
@@ -251,13 +252,14 @@ source /root/.bashrc
 
 # Deploy Trap
 echo "Deploying Trap..."
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap deployment"
 source /root/.bashrc
 
 # Step 4.1: Extract Trap Address from drosera.toml
 echo "Step 4.1: Extracting Trap Address from drosera.toml..."
-TRAP_ADDRESS=$(grep 'address =' drosera.toml | sed -n 's/.*address = "\(0x[a-fA-F0-9]\{40\}\)".*/\1/p')
+TRAP_ADDRESS=$(grep 'address =' ~/my-drosera-trap/drosera.toml | sed -n 's/.*address = "\(0x[a-fA-F0-9]\{40\}\)".*/\1/p')
 if [[ -z "$TRAP_ADDRESS" ]]; then
     echo "Error: Failed to extract Trap Address from drosera.toml."
     exit 1
@@ -276,6 +278,7 @@ source /root/.bashrc
 
 # Step 5: Whitelist Operators
 echo "Step 5: Whitelisting Operators..."
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 # Remove existing whitelist line
 sed -i '/whitelist = \[\]/d' drosera.toml
 check_status "Removing existing whitelist from drosera.toml"
@@ -286,8 +289,8 @@ whitelist = ["$OPERATOR1_ADDRESS","$OPERATOR2_ADDRESS"]
 EOF
 check_status "Appending new whitelist to drosera.toml"
 # Add delay to handle ConfigUpdateCooldownNotElapsed
-echo "Waiting 60 seconds to ensure cooldown period has elapsed..."
-sleep 60
+echo "Waiting 120 seconds to ensure cooldown period has elapsed..."
+sleep 120
 echo "Updating Trap configuration..."
 DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap configuration update"
@@ -304,7 +307,7 @@ sudo cp drosera-operator /usr/bin
 drosera-operator
 check_status "Operator CLI global setup"
 source /root/.bashrc
-cd ~/my-drosera-trap
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 
 # Step 7: Register Operators
 echo "Step 7: Registering Operators..."
@@ -461,7 +464,7 @@ EOF
 docker compose up -d
 check_status "Docker Operators setup"
 source /root/.bashrc
-cd ~/my-drosera-trap
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 
 echo "Drosera Network Testnet Setup Complete for Two Operators!"
 echo "Check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness."

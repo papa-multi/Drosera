@@ -142,31 +142,139 @@ echo "Step 3: Installing Drosera, Foundry, and Bun CLIs..."
 
 # Install Drosera CLI
 echo "Installing Drosera CLI..."
-cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-sudo bash -c "$(curl -L https://app.drosera.io/install)"
-sleep 3
-source /root/.bashrc
-sleep 2
-droseraup
+max_attempts=3
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Installing Drosera CLI..."
+    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+    
+    sudo bash -c "$(curl -L https://app.drosera.io/install)"
+    sleep 3
+    source /root/.bashrc
+    sleep 2
+    source /root/.bashrc
+    sleep 2
+    
+    if [[ -d "/root/.drosera/bin" ]]; then
+        export PATH=$PATH:/root/.drosera/bin
+        echo 'export PATH=$PATH:/root/.drosera/bin' >> /root/.bashrc
+        source /root/.bashrc
+        sleep 2
+    fi
+    
+    if command -v droseraup &> /dev/null; then
+        droseraup
+        source /root/.bashrc
+        sleep 2
+        if command -v drosera &> /dev/null; then
+            echo "Success: Drosera CLI installed."
+            break
+        else
+            echo "Drosera CLI not fully installed."
+        fi
+    else
+        echo "droseraup command not found."
+        echo "Current PATH: $PATH"
+    fi
+    
+    ((attempt++))
+    if [[ $attempt -le $max_attempts ]]; then
+        echo "Retrying in 10 seconds..."
+        sleep 10
+    else
+        echo "Error: Failed to install Drosera CLI after $max_attempts attempts."
+        exit 1
+    fi
+done
 check_status "Drosera CLI installation"
 
 # Install Foundry CLI
 echo "Installing Foundry CLI..."
-cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-sudo bash -c "$(curl -L https://foundry.paradigm.xyz)"
-sleep 3
-source /root/.bashrc
-sleep 2
-foundryup
+max_attempts=3
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Installing Foundry CLI..."
+    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+    
+    sudo bash -c "$(curl -L https://foundry.paradigm.xyz)"
+    sleep 3
+    source /root/.bashrc
+    sleep 2
+    source /root/.bashrc
+    sleep 2
+    
+    if [[ -d "/root/.foundry/bin" ]]; then
+        export PATH=$PATH:/root/.foundry/bin
+        echo 'export PATH=$PATH:/root/.foundry/bin' >> /root/.bashrc
+        source /root/.bashrc
+        sleep 2
+    fi
+    
+    if command -v foundryup &> /dev/null; then
+        foundryup
+        source /root/.bashrc
+        sleep 2
+        if command -v forge &> /dev/null; then
+            echo "Success: Foundry CLI installed."
+            break
+        else
+            echo "Foundry CLI not fully installed."
+        fi
+    else
+        echo "foundryup command not found."
+        echo "Current PATH: $PATH"
+    fi
+    
+    ((attempt++))
+    if [[ $attempt -le $max_attempts ]]; then
+        echo "Retrying in 10 seconds..."
+        sleep 10
+    else
+        echo "Error: Failed to install Foundry CLI after $max_attempts attempts."
+        exit 1
+    fi
+done
 check_status "Foundry CLI installation"
 
 # Install Bun CLI
 echo "Installing Bun CLI..."
-cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-sudo bash -c "$(curl -fsSL https://bun.sh/install)"
-sleep 3
-source /root/.bashrc
-sleep 2
+max_attempts=3
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Installing Bun CLI..."
+    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+    
+    sudo bash -c "$(curl -fsSL https://bun.sh/install)"
+    sleep 3
+    source /root/.bashrc
+    sleep 2
+    source /root/.bashrc
+    sleep 2
+    
+    if [[ -d "/root/.bun/bin" ]]; then
+        export PATH=$PATH:/root/.bun/bin
+        echo 'export PATH=$PATH:/root/.bun/bin' >> /root/.bashrc
+        source /root/.bashrc
+        sleep 2
+    fi
+    
+    if command -v bun &> /dev/null; then
+        echo "Success: Bun CLI installed."
+        break
+    else
+        echo "bun command not found."
+        echo "Current PATH: $PATH"
+    fi
+    
+    ((attempt++))
+    if [[ $attempt -le $max_attempts ]]; then
+        echo "Retrying in 10 seconds..."
+        sleep 10
+    else
+        echo "Error: Failed to install Bun CLI after $max_attempts attempts."
+        exit 1
+    fi
+done
 check_status "Bun CLI installation"
 
 # Step 4: Trap Setup

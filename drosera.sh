@@ -269,7 +269,7 @@ while [[ $attempt -le $max_attempts ]]; do
         ((attempt++))
         if [[ $attempt -le $max_attempts ]]; then
             echo "Retrying in 10 seconds..."
-            sleep 10
+            sleep 60
         else
             echo "Error: Failed to deploy Trap after $max_attempts attempts."
             exit 1
@@ -311,8 +311,8 @@ whitelist = ["$OPERATOR1_ADDRESS","$OPERATOR2_ADDRESS"]
 EOF
 check_status "Appending new whitelist to drosera.toml"
 # Add delay to handle ConfigUpdateCooldownNotElapsed
-echo "Waiting 120 seconds to ensure cooldown period has elapsed..."
-sleep 120
+echo "Waiting 60 seconds to ensure cooldown period has elapsed..."
+sleep 60
 echo "Updating Trap configuration..."
 max_attempts=10
 attempt=1
@@ -326,8 +326,8 @@ while [[ $attempt -le $max_attempts ]]; do
         echo "Failed to update Trap configuration."
         ((attempt++))
         if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
-            sleep 60
+            echo "Retrying in 120 seconds..."
+            sleep 120
         else
             echo "Error: Failed to update Trap configuration after $max_attempts attempts."
             exit 1

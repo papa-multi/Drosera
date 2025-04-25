@@ -21,18 +21,90 @@ check_status() {
     fi
 }
 
+# Function to validate private key
+validate_private_key() {
+    local private_key=$1
+    if [[ ! "$private_key" =~ ^[0-9a-fA-F]{64}$ ]]; then
+        echo "Error: Invalid private key format. Must be 64 hexadecimal characters."
+        exit 1
+    fi
+}
+
+# Function to validate RPC URL
+validate_rpc_url() {
+    local rpc_url=$1
+    echo "Validating RPC URL: $rpc_url"
+    local response=$(curl -s -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$rpc_url")
+    if [[ ! "$response" =~ "result" ]]; then
+        echo "Error: RPC URL ($rpc_url) is not responding correctly. Response: $response"
+        return 1
+    fi
+    return 0
+}
+
 # Function to retry drosera apply with custom RPC if needed
 run_drosera_apply() {
     local private_key=$1
     local rpc_url=$2
+    local max_attempts=3
+    local attempt=1
+    local output=""
     local cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply"
     if [[ -n "$rpc_url" ]]; then
         cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
     fi
-    echo "Running: $cmd"
-    output=$(eval $cmd 2>&1)
-    check_status "drosera apply"
-    echo "$output"
+
+    # Validate private key
+    validate_private_key "$private_key"
+
+    # Validate RPC URL
+    if ! validate_rpc_url "$rpc_url"; then
+        echo "Falling back to backup RPC URL: https://holesky.drpc.org"
+        rpc_url="https://holesky.drpc.org"
+        cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
+    fi
+
+    while [[ $attempt -le $max_attempts ]]; do
+        echo "Attempt $attempt/$max_attempts: Running: $cmd"
+        # Run with 5-minute timeout
+        output=$(timeout 300 bash -c "$cmd" 2>&1)
+        local status=$?
+        
+        if [[ $status -eq 0 && "$output" =~ "Trap Config address: 0x" ]]; then
+            echo "Success: Trap deployed successfully!"
+            echo "Full output: $output"
+            echo "$output"
+            return 0
+        else
+            echo "Failed attempt $attempt: Status code: $status"
+            echo "Output: $output"
+            if [[ "$output" =~ "429" ]]; then
+                echo "RPC rate limit detected. Trying backup RPC..."
+                rpc_url="https://holesky.drpc.org"
+                cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
+            elif [[ "$output" =~ "insufficient funds" ]]; then
+                echo "Error: Insufficient funds in wallet. Please fund your Holesky wallet and try again."
+                exit 1
+            fi
+        fi
+        
+        ((attempt++))
+        if [[ $attempt -le $max_attempts ]]; then
+            echo "Retrying in 10 seconds..."
+            sleep 10
+        fi
+    done
+
+    echo "Error: Failed to deploy Trap after $max_attempts attempts."
+    echo "Final output: $output"
+    read -p "Enter a new Ethereum Holesky RPC URL to try again (or press Enter to exit): " new_rpc_url
+    if [[ -n "$new_rpc_url" ]]; then
+        echo "Trying with new RPC URL: $new_rpc_url"
+        run_drosera_apply "$private_key" "$new_rpc_url"
+    else
+        echo "Exiting due to repeated failures."
+        exit 1
+    fi
 }
 
 # Clean up previous script runs
@@ -125,11 +197,6 @@ check_status "Forge build"
 # Deploy Trap and capture Trap Address
 echo "Deploying Trap..."
 trap_output=$(run_drosera_apply "$TRAP_PRIVATE_KEY" "$ETH_RPC_URL")
-if [[ "$trap_output" =~ "Error" && "$trap_output" =~ "429" ]]; then
-    echo "RPC error detected. Retrying with user-provided RPC..."
-    read -p "Enter a new Ethereum Holesky RPC URL: " NEW_RPC_URL
-    trap_output=$(run_drosera_apply "$TRAP_PRIVATE_KEY" "$NEW_RPC_URL")
-fi
 TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'Trap Config address: \K0x[a-fA-F0-9]{40}')
 if [[ -z "$TRAP_ADDRESS" ]]; then
     echo "Failed to capture Trap Address. Please check the output and enter it manually."
@@ -276,8 +343,6 @@ EOF
     cat << EOF > docker-compose.yaml
 version: '3'
 services:
-ंतर
-
   drosera1:
     image: ghcr.io/drosera-network/drosera-operator:latest
     container_name: drosera-node1

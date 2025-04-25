@@ -140,168 +140,31 @@ check_status "Docker installation"
 # Step 3: Install CLIs (Drosera, Foundry, Bun)
 echo "Step 3: Installing Drosera, Foundry, and Bun CLIs..."
 
-# Install Drosera CLI with retries
+# Install Drosera CLI
 echo "Installing Drosera CLI..."
-max_attempts=5
-attempt=1
-while [[ $attempt -le $max_attempts ]]; do
-    echo "Attempt $attempt/$max_attempts: Installing Drosera CLI..."
-    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-    
-    output=$(curl -L https://app.drosera.io/install | bash 2>&1)
-    echo "Installer output: $output"
-    
-    source /root/.bashrc
-    sleep 2
-    source /root/.bashrc
-    sleep 2
-    
-    if [[ -d "/root/.drosera/bin" ]]; then
-        export PATH=$PATH:/root/.drosera/bin
-        echo 'export PATH=$PATH:/root/.drosera/bin' >> /root/.bashrc
-        source /root/.bashrc
-        sleep 2
-    fi
-    
-    if command -v droseraup &> /dev/null; then
-        echo "droseraup found, running droseraup..."
-        droseraup_output=$(droseraup 2>&1)
-        echo "droseraup output: $droseraup_output"
-        
-        source /root/.bashrc
-        sleep 2
-        if command -v drosera &> /dev/null; then
-            echo "Success: Drosera CLI installed."
-            break
-        else
-            echo "Drosera CLI not fully installed."
-        fi
-    else
-        echo "droseraup command not found."
-        echo "Current PATH: $PATH"
-    fi
-    
-    ((attempt++))
-    if [[ $attempt -le $max_attempts ]]; then
-        echo "Retrying in 15 seconds..."
-        sleep 15
-    else
-        echo "Error: Failed to install Drosera CLI after $max_attempts attempts."
-        echo "Please try running the following commands manually:"
-        echo "  cd ~"
-        echo "  curl -L https://app.drosera.io/install | bash"
-        echo "  source /root/.bashrc"
-        echo "  droseraup"
-        exit 1
-    fi
-done
+cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+sudo bash -c "$(curl -L https://app.drosera.io/install)"
+sleep 3
 source /root/.bashrc
 sleep 2
+droseraup
 check_status "Drosera CLI installation"
 
-# Install Foundry CLI with retries
+# Install Foundry CLI
 echo "Installing Foundry CLI..."
-max_attempts=5
-attempt=1
-while [[ $attempt -le $max_attempts ]]; do
-    echo "Attempt $attempt/$max_attempts: Installing Foundry CLI..."
-    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-    
-    output=$(curl -L https://foundry.paradigm.xyz | bash 2>&1)
-    echo "Installer output: $output"
-    
-    source /root/.bashrc
-    sleep 2
-    source /root/.bashrc
-    sleep 2
-    
-    if [[ -d "/root/.foundry/bin" ]]; then
-        export PATH=$PATH:/root/.foundry/bin
-        echo 'export PATH=$PATH:/root/.foundry/bin' >> /root/.bashrc
-        source /root/.bashrc
-        sleep 2
-    fi
-    
-    if command -v foundryup &> /dev/null; then
-        echo "foundryup found, running foundryup..."
-        foundryup_output=$(foundryup 2>&1)
-        echo "foundryup output: $foundryup_output"
-        
-        source /root/.bashrc
-        sleep 2
-        if command -v forge &> /dev/null; then
-            echo "Success: Foundry CLI installed."
-            break
-        else
-            echo "Foundry CLI not fully installed."
-        fi
-    else
-        echo "foundryup command not found."
-        echo "Current PATH: $PATH"
-    fi
-    
-    ((attempt++))
-    if [[ $attempt -le $max_attempts ]]; then
-        echo "Retrying in 15 seconds..."
-        sleep 15
-    else
-        echo "Error: Failed to install Foundry CLI after $max_attempts attempts."
-        echo "Please try running the following commands manually:"
-        echo "  cd ~"
-        echo "  curl -L https://foundry.paradigm.xyz | bash"
-        echo "  source /root/.bashrc"
-        echo "  foundryup"
-        exit 1
-    fi
-done
+cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+sudo bash -c "$(curl -L https://foundry.paradigm.xyz)"
+sleep 3
 source /root/.bashrc
 sleep 2
+foundryup
 check_status "Foundry CLI installation"
 
-# Install Bun CLI with retries
+# Install Bun CLI
 echo "Installing Bun CLI..."
-max_attempts=5
-attempt=1
-while [[ $attempt -le $max_attempts ]]; do
-    echo "Attempt $attempt/$max_attempts: Installing Bun CLI..."
-    cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-    
-    output=$(curl -fsSL https://bun.sh/install | bash 2>&1)
-    echo "Installer output: $output"
-    
-    source /root/.bashrc
-    sleep 2
-    source /root/.bashrc
-    sleep 2
-    
-    if [[ -d "/root/.bun/bin" ]]; then
-        export PATH=$PATH:/root/.bun/bin
-        echo 'export PATH=$PATH:/root/.bun/bin' >> /root/.bashrc
-        source /root/.bashrc
-        sleep 2
-    fi
-    
-    if command -v bun &> /dev/null; then
-        echo "Success: Bun CLI installed."
-        break
-    else
-        echo "bun command not found."
-        echo "Current PATH: $PATH"
-    fi
-    
-    ((attempt++))
-    if [[ $attempt -le $max_attempts ]]; then
-        echo "Retrying in 15 seconds..."
-        sleep 15
-    else
-        echo "Error: Failed to install Bun CLI after $max_attempts attempts."
-        echo "Please try running the following commands manually:"
-        echo "  cd ~"
-        echo "  curl -fsSL https://bun.sh/install | bash"
-        echo "  source /root/.bashrc"
-        exit 1
-    fi
-done
+cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
+sudo bash -c "$(curl -fsSL https://bun.sh/install)"
+sleep 3
 source /root/.bashrc
 sleep 2
 check_status "Bun CLI installation"
@@ -318,48 +181,20 @@ bun install
 forge build
 check_status "Forge build"
 
-# Create initial drosera.toml
-echo "Creating initial drosera.toml..."
-cat << EOF > drosera.toml
-ethereum_rpc = "https://ethereum-holesky-rpc.publicnode.com"
-drosera_rpc = "https://seed-node.testnet.drosera.io"
-eth_chain_id = 17000
-drosera_address = "0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8"
-
-[traps]
-
-[traps.mytrap]
-path = "out/HelloWorldTrap.sol/HelloWorldTrap.json"
-response_contract = "0xdA890040Af0533D98B9F5f8FE3537720ABf83B0C"
-response_function = "helloworld(string)"
-cooldown_period_blocks = 33
-min_number_of_operators = 1
-max_number_of_operators = 2
-block_sample_size = 10
-address = "0x0000000000000000000000000000000000000000"
-EOF
-check_status "Creating drosera.toml"
-
 # Deploy Trap
 echo "Deploying Trap..."
 cd ~/my-drosera-trap
 DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap deployment"
 
-# Step 4.1: Extract Trap Address
-echo "Step 4.1: Please provide the Trap Config address from the deployment output (e.g., 0x...)."
-echo "You can find it in the terminal output or by checking the transaction on https://holesky.etherscan.io/."
-read -p "Enter the Trap Config address: " TRAP_ADDRESS
-if [[ ! "$TRAP_ADDRESS" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
-    echo "Error: Invalid Trap Config address format."
+# Step 4.1: Extract Trap Address from drosera.toml
+echo "Step 4.1: Extracting Trap Address from drosera.toml..."
+TRAP_ADDRESS=$(grep 'address =' ~/my-drosera-trap/drosera.toml | sed -n 's/.*address = "\(0x[a-fA-F0-9]\{40\}\)".*/\1/p')
+if [[ -z "$TRAP_ADDRESS" ]]; then
+    echo "Error: Failed to extract Trap Address from drosera.toml."
     exit 1
 fi
-echo "Trap Address provided: $TRAP_ADDRESS"
-
-# Update drosera.toml with Trap Address
-echo "Updating drosera.toml with Trap Address..."
-sed -i "s/address = \"0x0000000000000000000000000000000000000000\"/address = \"$TRAP_ADDRESS\"/" drosera.toml
-check_status "Updating drosera.toml with Trap Address"
+echo "Trap Address extracted: $TRAP_ADDRESS"
 
 # Step 4.2: Confirm Send Bloom
 echo "Please go to https://app.drosera.io/, open your Trap ($TRAP_ADDRESS), and click 'Send Bloom Boost' to deposit some Holesky ETH."
@@ -372,11 +207,15 @@ fi
 # Step 5: Whitelist Operators
 echo "Step 5: Whitelisting Operators..."
 cd ~/my-drosera-trap
+# Remove existing whitelist line
+sed -i '/whitelist = \[\]/d' drosera.toml
+check_status "Removing existing whitelist from drosera.toml"
+# Append new whitelist
 cat << EOF >> drosera.toml
 private_trap = true
 whitelist = ["$OPERATOR1_ADDRESS", "$OPERATOR2_ADDRESS"]
 EOF
-check_status "Appending whitelist to drosera.toml"
+check_status "Appending new whitelist to drosera.toml"
 echo "Updating Trap configuration..."
 DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap configuration update"

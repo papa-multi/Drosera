@@ -34,15 +34,15 @@ validate_private_key() {
 validate_rpc_url() {
     local rpc_url=$1
     echo "Validating RPC URL: $rpc_url"
-    local response=$(curl -s -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$rpc_url")
+    local response=$(curl -s -m 10 -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$rpc_url")
     if [[ ! "$response" =~ "result" ]]; then
-        echo "Error: RPC URL ($rpc_url) is not responding correctly. Response: $response"
+        echo "Warning: RPC URL ($rpc_url) is not responding correctly. Response: $response"
         return 1
     fi
     return 0
 }
 
-# Function to retry drosera apply with custom RPC if needed
+# Function to retry drosera apply
 run_drosera_apply() {
     local private_key=$1
     local rpc_url=$2
@@ -50,19 +50,19 @@ run_drosera_apply() {
     local attempt=1
     local output=""
     local cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply"
-    if [[ -n "$rpc_url" ]]; then
-        cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
-    fi
-
+    
     # Validate private key
     validate_private_key "$private_key"
 
-    # Validate RPC URL
-    if ! validate_rpc_url "$rpc_url"; then
-        echo "Falling back to backup RPC URL: https://holesky.drpc.org"
-        rpc_url="https://holesky.drpc.org"
+    # Validate RPC URL and append if valid
+    if [[ -n "$rpc_url" ]] && validate_rpc_url "$rpc_url"; then
         cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
+    else
+        echo "Using default execution without custom RPC URL due to invalid or empty RPC."
     fi
+
+    # Ensure we're in the correct directory
+    cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 
     while [[ $attempt -le $max_attempts ]]; do
         echo "Attempt $attempt/$max_attempts: Running: $cmd"
@@ -79,11 +79,14 @@ run_drosera_apply() {
             echo "Failed attempt $attempt: Status code: $status"
             echo "Output: $output"
             if [[ "$output" =~ "429" ]]; then
-                echo "RPC rate limit detected. Trying backup RPC..."
+                echo "RPC rate limit detected. Switching to backup RPC..."
                 rpc_url="https://holesky.drpc.org"
                 cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
             elif [[ "$output" =~ "insufficient funds" ]]; then
                 echo "Error: Insufficient funds in wallet. Please fund your Holesky wallet and try again."
+                exit 1
+            elif [[ "$output" =~ "invalid private key" ]]; then
+                echo "Error: Invalid private key provided."
                 exit 1
             fi
         fi
@@ -105,6 +108,64 @@ run_drosera_apply() {
         echo "Exiting due to repeated failures."
         exit 1
     fi
+}
+
+# Function to run drosera-operator optin with retries
+run_drosera_optin() {
+    local private_key=$1
+    local rpc_url=$2
+    local trap_address=$3
+    local max_attempts=3
+    local attempt=1
+    local output=""
+    local cmd="drosera-operator optin --eth-rpc-url $rpc_url --eth-private-key $private_key --trap-config-address $trap_address"
+
+    # Validate private key
+    validate_private_key "$private_key"
+
+    # Validate RPC URL
+    if ! validate_rpc_url "$rpc_url"; then
+        echo "Falling back to backup RPC URL: https://holesky.drpc.org"
+        rpc_url="https://holesky.drpc.org"
+        cmd="drosera-operator optin --eth-rpc-url $rpc_url --eth-private-key $private_key --trap-config-address $trap_address"
+    fi
+
+    while [[ $attempt -le $max_attempts ]]; do
+        echo "Attempt $attempt/$max_attempts: Running: $cmd"
+        # Run with 2-minute timeout
+        output=$(timeout 120 bash -c "$cmd" 2>&1)
+        local status=$?
+        
+        if [[ $status -eq 0 ]]; then
+            echo "Success: Operator opted in successfully!"
+            echo "Full output: $output"
+            return 0
+        else
+            echo "Failed attempt $attempt: Status code: $status"
+            echo "Output: $output"
+            if [[ "$output" =~ "429" ]]; then
+                echo "RPC rate limit detected. Switching to backup RPC..."
+                rpc_url="https://holesky.drpc.org"
+                cmd="drosera-operator optin --eth-rpc-url $rpc_url --eth-private-key $private_key --trap-config-address $trap_address"
+            elif [[ "$output" =~ "insufficient funds" ]]; then
+                echo "Error: Insufficient funds in wallet. Please fund your Holesky wallet and try again."
+                exit 1
+            elif [[ "$output" =~ "invalid private key" ]]; then
+                echo "Error: Invalid private key provided."
+                exit 1
+            fi
+        fi
+        
+        ((attempt++))
+        if [[ $attempt -le $max_attempts ]]; then
+            echo "Retrying in 10 seconds..."
+            sleep 10
+        fi
+    done
+
+    echo "Error: Failed to opt-in Operator after $max_attempts attempts."
+    echo "Final output: $output"
+    exit 1
 }
 
 # Clean up previous script runs
@@ -299,10 +360,10 @@ docker logs -f drosera-node1
 echo "Step 14: Opting in to Trap..."
 echo "Please log in to https://app.drosera.io/ with your Operator wallet and opt-in to the Trap ($TRAP_ADDRESS)."
 confirm_action "Have you opted in to the Trap?"
-# Alternative CLI opt-in
-echo "Alternatively, opting in via CLI..."
-drosera-operator optin --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$TRAP_PRIVATE_KEY" --trap-config-address "$TRAP_ADDRESS"
-check_status "Operator opt-in"
+# CLI opt-in for first operator
+echo "Opting in via CLI for first Operator..."
+run_drosera_optin "$TRAP_PRIVATE_KEY" "$ETH_RPC_URL" "$TRAP_ADDRESS"
+check_status "First Operator opt-in"
 
 # Step 15: Check Node Liveness
 echo "Step 15: Checking node liveness..."
@@ -358,7 +419,7 @@ services:
     container_name: drosera-node2
     ports:
       - "31315:31315"
-      - "31316:31316"
+      - "31316:316"
     volumes:
       - drosera_data2:/data
     command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 31316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key \${ETH_PRIVATE_KEY2} --listen-address 0.0.0.0 --network-external-p2p-address \${VPS_IP} --disable-dnr-confirmation true
@@ -383,7 +444,9 @@ EOF
     echo "Opting in second Operator..."
     echo "Please log in to https://app.drosera.io/ with your second Operator wallet and opt-in to the Trap ($TRAP_ADDRESS)."
     confirm_action "Have you opted in the second Operator?"
-    drosera-operator optin --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$SECOND_PRIVATE_KEY" --trap-config-address "$TRAP_ADDRESS"
+    echo "Opting in via CLI for second Operator..."
+    run_drosera_optin "$SECOND_PRIVATE_KEY" "$ETH_RPC_URL" "$TRAP_ADDRESS"
+    check_status "Second Operator opt-in"
     
     echo "Second Operator setup complete. Check dashboard for green blocks."
 fi

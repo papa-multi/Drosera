@@ -21,35 +21,24 @@ validate_private_key() {
     fi
 }
 
-# Function to validate RPC URL
-validate_rpc_url() {
-    local rpc_url=$1
-    echo "Validating RPC URL: $rpc_url"
-    local response=$(curl -s -m 10 -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$rpc_url")
-    if [[ ! "$response" =~ "result" ]]; then
-        echo "Warning: RPC URL ($rpc_url) is not responding correctly. Response: $response"
-        return 1
-    fi
-    return 0
-}
-
 # Function to retry drosera apply
 run_drosera_apply() {
     local private_key=$1
-    local rpc_url=$2
     local max_attempts=3
     local attempt=1
     local output=""
     local cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply"
     
     validate_private_key "$private_key"
-    if [[ -n "$rpc_url" ]] && validate_rpc_url "$rpc_url"; then
-        cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
-    else
-        echo "Using default execution without custom RPC URL."
-    fi
 
+    # Ensure we're in the correct directory
     cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+
+    # Check if drosera command is available
+    if ! command -v drosera &> /dev/null; then
+        echo "Error: drosera command not found. Ensure Drosera CLI is installed."
+        exit 1
+    fi
 
     while [[ $attempt -le $max_attempts ]]; do
         echo "Attempt $attempt/$max_attempts: Running: $cmd"
@@ -64,11 +53,7 @@ run_drosera_apply() {
         else
             echo "Failed attempt $attempt: Status code: $status"
             echo "Output: $output"
-            if [[ "$output" =~ "429" ]]; then
-                echo "RPC rate limit detected. Switching to backup RPC..."
-                rpc_url="https://holesky.drpc.org"
-                cmd="DROSERA_PRIVATE_KEY=$private_key drosera apply --eth-rpc-url $rpc_url"
-            elif [[ "$output" =~ "insufficient funds" ]]; then
+            if [[ "$output" =~ "insufficient funds" ]]; then
                 echo "Error: Insufficient funds in wallet. Please fund your Holesky wallet and try again."
                 exit 1
             elif [[ "$output" =~ "invalid private key" ]]; then
@@ -100,7 +85,7 @@ run_drosera_optin() {
     local cmd="drosera-operator optin --eth-rpc-url $rpc_url --eth-private-key $private_key --trap-config-address $trap_address"
 
     validate_private_key "$private_key"
-    if ! validate_rpc_url "$rpc_url"; then
+    if [[ -n "$rpc_url" ]] && ! curl -s -m 10 -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$rpc_url" | grep -q "result"; then
         echo "Falling back to backup RPC URL: https://holesky.drpc.org"
         rpc_url="https://holesky.drpc.org"
         cmd="drosera-operator optin --eth-rpc-url $rpc_url --eth-private-key $private_key --trap-config-address $trap_address"
@@ -388,7 +373,7 @@ check_status "Forge build"
 
 # Deploy Trap and capture Trap Address
 echo "Deploying Trap..."
-trap_output=$(run_drosera_apply "$OPERATOR1_PRIVATE_KEY" "$ETH_RPC_URL")
+trap_output=$(run_drosera_apply "$OPERATOR1_PRIVATE_KEY")
 TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'Trap Config address: \K0x[a-fA-F0-9]{40}')
 if [[ -z "$TRAP_ADDRESS" ]]; then
     echo "Failed to capture Trap Address. Please check the output and enter it manually."
@@ -405,7 +390,7 @@ whitelist = ["$OPERATOR1_ADDRESS", "$OPERATOR2_ADDRESS"]
 EOF
 check_status "Updating drosera.toml"
 echo "Updating Trap configuration..."
-run_drosera_apply "$OPERATOR1_PRIVATE_KEY" "$ETH_RPC_URL"
+run_drosera_apply "$OPERATOR1_PRIVATE_KEY"
 echo "Trap is now private with both operator addresses whitelisted."
 
 # Step 6: Install Operator CLI

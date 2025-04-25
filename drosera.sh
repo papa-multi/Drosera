@@ -318,29 +318,64 @@ bun install
 forge build
 check_status "Forge build"
 
+# Create initial drosera.toml
+echo "Creating initial drosera.toml..."
+cat << EOF > drosera.toml
+ethereum_rpc = "https://ethereum-holesky-rpc.publicnode.com"
+drosera_rpc = "https://seed-node.testnet.drosera.io"
+eth_chain_id = 17000
+drosera_address = "0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8"
+
+[traps]
+
+[traps.mytrap]
+path = "out/HelloWorldTrap.sol/HelloWorldTrap.json"
+response_contract = "0xdA890040Af0533D98B9F5f8FE3537720ABf83B0C"
+response_function = "helloworld(string)"
+cooldown_period_blocks = 33
+min_number_of_operators = 1
+max_number_of_operators = 2
+block_sample_size = 10
+address = "0x0000000000000000000000000000000000000000"
+EOF
+check_status "Creating drosera.toml"
+
 # Deploy Trap
 echo "Deploying Trap..."
 cd ~/my-drosera-trap
-DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
+trap_output=$(DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply 2>&1)
 check_status "Trap deployment"
+echo "Trap deployment output: $trap_output"
 
-# Extract Trap Address from drosera.toml
-echo "Extracting Trap Address from drosera.toml..."
-TRAP_ADDRESS=$(grep 'address =' drosera.toml | sed -n 's/.*address = "\(0x[a-fA-F0-9]\{40\}\)".*/\1/p')
+# Extract Trap Address from output
+TRAP_ADDRESS=$(echo "$trap_output" | grep -oP 'address: \K0x[a-fA-F0-9]{40}')
 if [[ -z "$TRAP_ADDRESS" ]]; then
-    echo "Error: Failed to extract Trap Address from drosera.toml."
+    echo "Error: Failed to extract Trap Address from deployment output."
     exit 1
 fi
 echo "Trap Address extracted: $TRAP_ADDRESS"
 
+# Update drosera.toml with Trap Address
+echo "Updating drosera.toml with Trap Address..."
+sed -i "s/address = \"0x0000000000000000000000000000000000000000\"/address = \"$TRAP_ADDRESS\"/" drosera.toml
+check_status "Updating drosera.toml with Trap Address"
+
+# Confirm Send Bloom
+echo "Please go to https://app.drosera.io/, open your Trap ($TRAP_ADDRESS), and click 'Send Bloom Boost' to deposit some Holesky ETH."
+read -p "Have you completed the Send Bloom on https://app.drosera.io/? (y/n): " bloom_confirmed
+if [[ "$bloom_confirmed" != "y" ]]; then
+    echo "Send Bloom not confirmed. Exiting."
+    exit 1
+fi
+
 # Step 5: Whitelist Operators
 echo "Step 5: Whitelisting Operators..."
 cd ~/my-drosera-trap
-cat << EOF > drosera.toml
+cat << EOF >> drosera.toml
 private_trap = true
 whitelist = ["$OPERATOR1_ADDRESS", "$OPERATOR2_ADDRESS"]
 EOF
-check_status "Updating drosera.toml"
+check_status "Appending whitelist to drosera.toml"
 echo "Updating Trap configuration..."
 DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
 check_status "Trap configuration update"

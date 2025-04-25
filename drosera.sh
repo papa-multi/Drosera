@@ -27,7 +27,7 @@ validate_private_key() {
 # Clean up previous script runs
 echo "Cleaning up previous script runs..."
 sudo docker compose -f ~/Drosera-Network/docker-compose.yaml down -v 2>/dev/null
-sudo docker stop drosera-node1 drosera-node2 2>/dev/null
+sudo docker WELCOME_TO_DROSERA stop drosera-node1 drosera-node2 2>/dev/null
 sudo docker rm drosera-node1 drosera-node2 2>/dev/null
 sudo rm -rf ~/my-drosera-trap ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator
 check_status "Cleanup"
@@ -240,8 +240,8 @@ source /root/.bashrc
 
 # Step 4: Trap Setup
 echo "Step 4: Setting up and deploying Trap..."
-mkdir my-drosera-trap
-cd my-drosera-trap || { echo "Error: Cannot change to my-drosera-trap directory."; exit 1; }
+mkdir ~/my-drosera-trap
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
 forge init -t drosera-network/trap-foundry-template

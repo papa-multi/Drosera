@@ -234,30 +234,56 @@ echo "Step 3: Installing Drosera, Foundry, and Bun CLIs..."
 
 # Install Drosera CLI with retries
 echo "Installing Drosera CLI..."
-max_attempts=3
+max_attempts=5
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Installing Drosera CLI..."
     cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
-    curl -L https://app.drosera.io/install | bash
+    
+    # Run installer and capture output
+    output=$(curl -L https://app.drosera.io/install | bash 2>&1)
+    echo "Installer output: $output"
+    
+    # Source .bashrc multiple times to ensure PATH is updated
     source /root/.bashrc
+    source /root/.bashrc
+    
+    # Manually add Drosera bin path to PATH
+    if [[ -d "/root/.drosera/bin" ]]; then
+        export PATH=$PATH:/root/.drosera/bin
+        echo 'export PATH=$PATH:/root/.drosera/bin' >> /root/.bashrc
+        source /root/.bashrc
+    fi
+    
+    # Check if droseraup is available
     if command -v droseraup &> /dev/null; then
-        droseraup
+        echo "droseraup found, running droseraup..."
+        droseraup_output=$(droseraup 2>&1)
+        echo "droseraup output: $droseraup_output"
+        
+        # Verify drosera command
         if command -v drosera &> /dev/null; then
             echo "Success: Drosera CLI installed."
             break
         else
-            echo "Drosera CLI installation failed."
+            echo "Drosera CLI not fully installed."
         fi
     else
         echo "droseraup command not found."
+        echo "Current PATH: $PATH"
     fi
+    
     ((attempt++))
     if [[ $attempt -le $max_attempts ]]; then
-        echo "Retrying in 10 seconds..."
-        sleep 10
+        echo "Retrying in 15 seconds..."
+        sleep 15
     else
         echo "Error: Failed to install Drosera CLI after $max_attempts attempts."
+        echo "Please try running the following commands manually:"
+        echo "  cd ~"
+        echo "  curl -L https://app.drosera.io/install | bash"
+        echo "  source /root/.bashrc"
+        echo "  droseraup"
         exit 1
     fi
 done
@@ -268,6 +294,7 @@ check_status "Drosera CLI installation"
 echo "Installing Foundry CLI..."
 cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
 curl -L https://foundry.paradigm.xyz | bash
+source /root/.bashrc
 source /root/.bashrc
 if command -v foundryup &> /dev/null; then
     foundryup
@@ -282,6 +309,7 @@ source /root/.bashrc
 echo "Installing Bun CLI..."
 cd ~ || { echo "Error: Cannot change to home directory."; exit 1; }
 curl -fsSL https://bun.sh/install | bash
+source /root/.bashrc
 source /root/.bashrc
 if command -v bun &> /dev/null; then
     check_status "Bun installation"
@@ -405,13 +433,15 @@ echo "Checking Operator health..."
 docker logs -f drosera-node1
 
 # Step 14: Opt-in Trap
-echo "Step 14: Opting in to Trap..."
-echo "Please log in to https://app.drosera.io/ with your Operator wallet and opt-in to the Trap ($TRAP_ADDRESS)."
-confirm_action "Have you opted in to the Trap?"
-# CLI opt-in for first operator
-echo "Opting in via CLI for first Operator..."
-run_drosera_optin "$TRAP_PRIVATE_KEY" "$ETH_RPC_URL" "$TRAP_ADDRESS"
-check_status "First Operator opt-in"
+read -p "Would you like to proceed with CLI opt-in for the first Operator? (y/n): " proceed_with_optin
+if [[ "$proceed_with_optin" == "y" ]]; then
+    echo "Opting in via CLI for first Operator..."
+    run_drosera_optin "$TRAP_PRIVATE_KEY" "$ETH_RPC_URL" "$TRAP_ADDRESS"
+    check_status "First Operator opt-in"
+else
+    echo "Please log in to https://app.drosera.io/ with your Operator wallet and opt-in to the Trap ($TRAP_ADDRESS)."
+    confirm_action "Have you opted in to the Trap?"
+fi
 
 # Step 15: Check Node Liveness
 echo "Step 15: Checking node liveness..."
@@ -489,12 +519,15 @@ EOF
     check_status "Second Operator setup"
     
     # Opt-in second operator
-    echo "Opting in second Operator..."
-    echo "Please log in to https://app.drosera.io/ with your second Operator wallet and opt-in to the Trap ($TRAP_ADDRESS)."
-    confirm_action "Have you opted in the second Operator?"
-    echo "Opting in via CLI for second Operator..."
-    run_drosera_optin "$SECOND_PRIVATE_KEY" "$ETH_RPC_URL" "$TRAP_ADDRESS"
-    check_status "Second Operator opt-in"
+    read -p "Would you like to proceed with CLI opt-in for the second Operator? (y/n): " proceed_with_optin_second
+    if [[ "$proceed_with_optin_second" == "y" ]]; then
+        echo "Opting in via CLI for second Operator..."
+        run_drosera_optin "$SECOND_PRIVATE_KEY" "$ETH_RPC_URL" "$TRAP_ADDRESS"
+        check_status "Second Operator opt-in"
+    else
+        echo "Please log in to https://app.drosera.io/ with your second Operator wallet and opt-in to the Trap ($TRAP_ADDRESS)."
+        confirm_action "Have you opted in the second Operator?"
+    fi
     
     echo "Second Operator setup complete. Check dashboard for green blocks."
 fi

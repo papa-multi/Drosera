@@ -5,7 +5,7 @@
 # README: Drosera Network Testnet Setup Script #
 ## Welcome to the Drosera Network Testnet Setup Script! This script automates the process of setting up and deploying a Trap with two Operators on the Drosera testnet. Follow the steps below to run the script successfully and get your node up and running 
 
-📋 Prerequisites
+#📋 Prerequisites
 Before running the script, ensure you have the following:
 
 A VPS/Server:
@@ -121,4 +121,4 @@ docker logs drosera-node2
 Follow 
 Crypton on Twitter for the latest news and updates about Drosera and this script.
 
- 🚀 If you have questions or need help, reach out via Twitter or the Drosera community.
+ 🚀 If you have questions or need help, reach out via Twitter or the Drosera community. #

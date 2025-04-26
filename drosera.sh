@@ -499,7 +499,10 @@ source /root/.bashrc
 # Step 11: Configure and Run Operators (Docker Method)
 echo "Step 11: Configuring and running Operators using Docker..."
 mkdir -p ~/Drosera-Network
-cd ~/Drosera-Network
+cd ~/Drosera-Network || { echo "Error: Cannot change to ~/Drosera-Network directory."; exit 1; }
+
+# Create .env file with direct variable substitution
+echo "Creating .env file..."
 cat << EOF > .env
 ETH_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY
 ETH_PRIVATE_KEY2=$OPERATOR2_PRIVATE_KEY
@@ -509,6 +512,15 @@ SERVER_PORT1=31314
 P2P_PORT2=31315
 SERVER_PORT2=31316
 EOF
+if [[ $? -eq 0 ]]; then
+    echo ".env file created successfully."
+else
+    echo "Warning: Failed to create .env file, continuing..."
+fi
+sleep 3
+
+# Create docker-compose.yaml file with direct variable substitution
+echo "Creating docker-compose.yaml file..."
 cat << EOF > docker-compose.yaml
 version: '3'
 services:
@@ -520,7 +532,7 @@ services:
       - "31314:31314"
     volumes:
       - drosera_data1:/data
-    command: node --db-file-path /data/drosera.db --network-p2p-port 31313 --server-port 31314 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key \${ETH_PRIVATE_KEY} --listen-address 0.0.0.0 --network-external-p2p-address \${VPS_IP} --disable-dnr-confirmation true
+    command: node --db-file-path /data/drosera.db --network-p2p-port 31313 --server-port 31314 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key $OPERATOR1_PRIVATE_KEY --listen-address 0.0.0.0 --network-external-p2p-address $VPS_IP --disable-dnr-confirmation true
     restart: always
   drosera2:
     image: ghcr.io/drosera-network/drosera-operator:latest
@@ -530,14 +542,23 @@ services:
       - "31316:31316"
     volumes:
       - drosera_data2:/data
-    command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 31316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key \${ETH_PRIVATE_KEY2} --listen-address 0.0.0.0 --network-external-p2p-address \${VPS_IP} --disable-dnr-confirmation true
+    command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 31316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key $OPERATOR2_PRIVATE_KEY --listen-address 0.0.0.0 --network-external-p2p-address $VPS_IP --disable-dnr-confirmation true
     restart: always
 volumes:
   drosera_data1:
   drosera_data2:
 EOF
-docker compose up -d
-check_status "Docker Operators setup"
+if [[ $? -eq 0 ]]; then
+    echo "docker-compose.yaml file created successfully."
+else
+    echo "Warning: Failed to create docker-compose.yaml file, continuing..."
+fi
+sleep 3
+
+# Run docker compose
+echo "Starting Docker containers..."
+docker compose up -d || { echo "Warning: Failed to start Docker containers, continuing..."; true; }
+sleep 3
 source /root/.bashrc
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 

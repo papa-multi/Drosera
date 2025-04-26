@@ -409,29 +409,48 @@ source /root/.bashrc
 
 # Step 8: Opt-in Operators
 echo "Step 8: Opting in Operators..."
-max_attempts=3
-attempt=1
-while [[ $attempt -le $max_attempts ]]; do
-    echo "Attempt $attempt/$max_attempts: Opting in Operator 1..."
-    drosera-operator optin --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR1_PRIVATE_KEY" --trap-config-address "$TRAP_ADDRESS"
-    if [[ $? -eq 0 ]]; then
-        echo "Success: Operator 1 opted in."
-        break
-    else
-        echo "Failed to opt-in Operator 1."
-        ((attempt++))
-        if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
-            sleep 10
-        else
-            echo "Error: Failed to opt-in Operator 1 after $max_attempts attempts."
-            exit 1
-        fi
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+
+# Validate Trap Config address
+echo "Validating Trap Config address..."
+if [[ ! "$TRAP_ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]]; then
+    echo "Error: Invalid Trap Config address format. Must be 40 hexadecimal characters with 0x prefix."
+    read -p "Enter a valid Trap Config address (e.g., 0x1234567890abcdef1234567890abcdef12345678): " TRAP_ADDRESS
+    if [[ ! "$TRAP_ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]]; then
+        echo "Error: Still invalid Trap Config address. Exiting."
+        exit 1
     fi
-done
-check_status "Operator 1 opt-in"
+fi
+echo "Trap Config address is valid."
+sleep 3
+
+# Opt-in Operator 1 (manual via website)
+echo "Please go to https://app.drosera.io/, log in with Operator 1 address ($OPERATOR1_ADDRESS), find your Trap ($TRAP_ADDRESS) in the dashboard, and click the 'Optin' button."
+read -p "Have you completed the Optin for Operator 1 on https://app.drosera.io/? (y/n): " optin1_confirmed
+if [[ "$optin1_confirmed" != "y" ]]; then
+    echo "Error: Optin for Operator 1 not confirmed. Exiting."
+    exit 1
+fi
+echo "Operator 1 opt-in confirmed."
+sleep 3
 source /root/.bashrc
 
+# Validate Operator 2 private key
+echo "Validating Operator 2 private key..."
+if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    echo "Error: Invalid Operator 2 private key format. Must be 64 hexadecimal characters."
+    read -p "Enter a valid Operator 2 private key: " OPERATOR2_PRIVATE_KEY
+    if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+        echo "Error: Still invalid Operator 2 private key. Exiting."
+        exit 1
+    fi
+fi
+echo "Operator 2 private key is valid."
+sleep 3
+
+# Opt-in Operator 2 (via code)
+echo "Attempting to opt-in Operator 2..."
+max_attempts=5
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Opting in Operator 2..."
@@ -443,15 +462,15 @@ while [[ $attempt -le $max_attempts ]]; do
         echo "Failed to opt-in Operator 2."
         ((attempt++))
         if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
-            sleep 10
+            echo "Retrying in 15 seconds..."
+            sleep 15
         else
-            echo "Error: Failed to opt-in Operator 2 after $max_attempts attempts."
+            echo "Error: Failed to opt-in Operator 2 after $max_attempts attempts. Exiting."
             exit 1
         fi
     fi
 done
-check_status "Operator 2 opt-in"
+sleep 3
 source /root/.bashrc
 
 # Step 9: Install Docker Image

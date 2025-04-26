@@ -29,7 +29,7 @@ Before running the script, ensure you have the following:
 
 ============================================================================================
 
-🚀 Installation and Setup
+## 🚀 Installation and Setup ##
 Follow these steps to clone, configure, and run the script:
 
 #Step 1: Clone the Repository

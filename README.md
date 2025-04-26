@@ -30,87 +30,69 @@ Before running the script, ensure you have the following:
 ============================================================================================
 
 ## 🚀 Installation and Setup ##
+## 🚀 Installation and Setup
+
 Follow these steps to clone, configure, and run the script:
 
-#Step 1: Clone the Repository
-Clone the Drosera script from GitHub to your server:
+1. **Clone the Repository**:
+   - Clone the Drosera script from GitHub to your server:
+     ```bash
+     git clone https://github.com/cryptoneth/Drosera/
+     cd Drosera && chmod +x drosera.sh && ./drosera.sh
+     ```
 
+2. **Provide Input Parameters**:
+   - The script will prompt you to enter the following details:
+     - **Operator 1 Private Key**:
+       - The 64-character hexadecimal private key of the wallet used to deploy the Trap (without `0x`).
+       - Example: `1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef`
+     - **Operator 1 Public Address**:
+       - The 42-character Ethereum address (with `0x`) of the first wallet.
+       - Example: `0x1234567890abcdef1234567890abcdef12345678`
+     - **Operator 2 Private Key**:
+       - The 64-character hexadecimal private key of the second wallet (without `0x`).
+       - Example: `1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef`
+     - **Operator 2 Public Address**:
+       - The 42-character Ethereum address (with `0x`) of the second wallet.
+       - Example: `0x1234567890abcdef1234567890abcdef12345678`
+     - **Ethereum Holesky RPC URL**:
+       - Your RPC URL from Alchemy, QuickNode, or a public node. Press Enter to use the default (`https://ethereum-holesky-rpc.publicnode.com`).
+       - Example: `https://eth-holesky.alchemyapi.io/v2/your-api-key`
+     - **GitHub Email**:
+       - Your GitHub email address.
+       - Example: `your.email@example.com`
+     - **GitHub Username**:
+       - Your GitHub username.
+       - Example: `yourusername`
 
-```bash
-git clone https://github.com/cryptoneth/Drosera/
-cd Drosera && chmod +x drosera.sh && ./drosera.sh
-```
+## 🏁 Final Steps
 
-#Step 2: Provide Input Parameters
+1. **Monitor Node Status**:
+   - After the script completes, visit the Drosera dashboard at [https://app.drosera.io/](https://app.drosera.io/) to check for green blocks indicating node liveness.
+   - You can also view Docker logs to monitor the nodes:
+     ```bash
+     cd ~/Drosera-Network
+     docker logs drosera-node1
+     docker logs drosera-node2
+     ```
 
-The script will prompt you to enter the following details:
+2. **Optional Command (Restart and Dryrun Node)**:
+   - To fetch blocks again and restart the node, run:
+     ```bash
+     pkill -9 drosera-operator
+     cd ~
+     cd my-drosera-trap
+     source /root/.bashrc
+     drosera dryrun
+     cd ~
+     cd Drosera-Network
+     docker compose up -d
+     ```
 
-#Operator 1 Private Key:
+3. **Stay Updated**:
+   - Follow [Crypton](https://x.com/0xCrypton_) on Twitter for the latest news and updates about Drosera and this script.
 
-The 64-character hexadecimal private key of the wallet used to deploy the Trap (without 0x).
+4. **Get Support**:
+   - If you have questions or need help, reach out via [Twitter](https://x.com/0xCrypton_) or the Drosera community.
 
-Example: 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
-
-#Operator 1 Public Address:
-
-The 42-character Ethereum address (with 0x) of the first wallet.
-
-Example: 0x1234567890abcdef1234567890abcdef12345678
-
-#Operator 2 Private Key:
-
-The 64-character hexadecimal private key of the second wallet (without 0x).
-
-#Operator 2 Public Address:
-
-The 42-character Ethereum address (with 0x) of the second wallet.
-
-#Ethereum Holesky RPC URL:
-
-Your RPC URL from Alchemy, QuickNode, or a public node. Press Enter to use the default (https://ethereum-holesky-rpc.publicnode.com).
-
-#GitHub Email:
-
-Your GitHub email address (e.g., your.email@example.com).
-
-#GitHub Username:
-
-Your GitHub username (e.g., yourusername).
-
-
-🚀 Done
-
-
-OPTIONAL COMMAND 
-
-Restarts and Dryruns Node:
-
-```bash
-pkill -9 drosera-operator
-cd ~
-cd my-drosera-trap
-source /root/.bashrc
-drosera dryrun
-cd ~
-cd Drosera-Network
-docker compose up -d
-```
-
-🏁 Final Steps
-Monitor Node Status:
-After the script completes, check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness.
-You can also check the Docker logs:
-
-```bash
-cd ~/Drosera-Network
-docker logs drosera-node1
-
-#OR
-
-docker logs drosera-node2
-```
-
-Follow 
-Crypton on Twitter for the latest news and updates about Drosera and this script.
-
- 🚀 If you have questions or need help, reach out via Twitter or the Drosera community. #
+🚀 **Done!** Your Drosera node should now be running smoothly.

@@ -543,7 +543,7 @@ cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap direct
 
 # Step 12: Restart and Dryrun Node
 echo "Step 12: Restarting node and running dryrun to fetch blocks..."
-pkill -9 drosera-operator || { echo "Warning: Failed to stop drosera-operator processes, continuing..."; true; }
+pkill -f drosera-operator || { echo "Warning: Failed to stop drosera-operator processes, continuing..."; true; }
 sleep 3
 source /root/.bashrc
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }

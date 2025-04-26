@@ -71,16 +71,17 @@ Follow these steps to clone, configure, and run the script:
 1. **Monitor Node Status**:
    - After the script completes, visit the Drosera dashboard at [https://app.drosera.io/](https://app.drosera.io/) to check for green blocks indicating node liveness.
    - You can also view Docker logs to monitor the nodes:
+
      ```bash
      cd ~/Drosera-Network
      docker logs drosera-node1
      ```
 or
 
-      ```bash
+   ```bash
      cd ~/Drosera-Network
      docker logs drosera-node2
-     ```
+   ```
 
    - Check That you Have Green Block Log on your Dashboard ( Wait For At Least 1 Hour To Check )
 

@@ -90,7 +90,7 @@ or
 2. **Optional Command (Restart and Dryrun Node)**:
    - To fetch blocks again and restart the node, run:
      ```bash
-     pkill -9 drosera-operator
+     pkill -f drosera-operator
      cd ~
      cd my-drosera-trap
      source /root/.bashrc

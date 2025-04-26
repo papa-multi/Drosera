@@ -29,8 +29,7 @@ Before running the script, ensure you have the following:
 
 ============================================================================================
 
-## 🚀 Installation and Setup ##
-## 🚀 Installation and Setup
+### 🚀 Installation and Setup
 
 Follow these steps to clone, configure, and run the script:
 
@@ -90,7 +89,7 @@ Follow these steps to clone, configure, and run the script:
      ```
 
 3. **Stay Updated**:
-   - Follow [Crypton](https://x.com/0xCrypton_) on Twitter for the latest news and updates about Drosera and this script.
+   - Follow [Drosera](https://x.com/DroseraNetwork) on Twitter for the latest news and updates about Drosera .
 
 4. **Get Support**:
    - If you have questions or need help, reach out via [Twitter](https://x.com/0xCrypton_) or the Drosera community.

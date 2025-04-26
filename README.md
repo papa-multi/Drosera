@@ -3,7 +3,7 @@
 ![Go0v1H4XoAAU5sA](https://github.com/user-attachments/assets/1371df50-fe90-4f28-bdc7-28d610c6d82c)
 
 # README: Drosera Network Testnet Setup Script #
-# Welcome to the Drosera Network Testnet Setup Script! This script automates the process of setting up and deploying a Trap with two Operators on the Drosera testnet. Follow the steps below to run the script successfully and get your node up and running #
+## Welcome to the Drosera Network Testnet Setup Script! This script automates the process of setting up and deploying a Trap with two Operators on the Drosera testnet. Follow the steps below to run the script successfully and get your node up and running 
 
 📋 Prerequisites
 Before running the script, ensure you have the following:

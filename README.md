@@ -19,7 +19,7 @@ Before running the script, ensure you have the following:
 - **Two Ethereum Holesky Wallets**:
   - **Address 1**: Used to deploy the Trap
   - **Address 2**: Used as the second Operator
-  - **Funding**: Both wallets must have sufficient Holesky ETH. Fund them using a Holesky faucet (e.g., [Holesky Faucet](https://faucet.holesky.eth.limo/))
+  - **Funding**: Both wallets must have sufficient Holesky ETH. Fund them using a Holesky faucet 
   - **Details**: Prepare the private keys (64 hexadecimal characters, no `0x`) and public addresses (42 characters with `0x`)
 
 - **Ethereum Holesky RPC URL**:

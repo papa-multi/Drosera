@@ -30,7 +30,7 @@ pkill -f drosera-operator
 sudo docker compose -f ~/Drosera-Network/docker-compose.yaml down -v 2>/dev/null
 sudo docker WELCOME_TO_DROSERA stop drosera-node1 drosera-node2 2>/dev/null
 sudo docker rm drosera-node1 drosera-node2 2>/dev/null
-sudo rm -rf ~/my-drosera-trap ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator -/drosera-operator
+sudo rm -rf ~/my-drosera-trap ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator ~/drosera-operator
 check_status "Cleanup"
 source /root/.bashrc
 

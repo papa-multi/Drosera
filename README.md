@@ -1,5 +1,5 @@
 # Drosera #
-A Simple Bash Script To Run Drosera
+# A Simple Bash Script To Run Drosera #
 ![Go0v1H4XoAAU5sA](https://github.com/user-attachments/assets/1371df50-fe90-4f28-bdc7-28d610c6d82c)
 
 README: Drosera Network Testnet Setup Script

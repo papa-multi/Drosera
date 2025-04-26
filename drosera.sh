@@ -282,21 +282,17 @@ source /root/.bashrc
 
 # Step 4.1: Extract Trap Address from drosera.toml
 echo "Step 4.1: Extracting Trap Address from drosera.toml..."
-TRAP_ADDRESS=$(grep 'address =' ~/my-drosera-trap/drosera.toml | sed -n 's/.*address = "\(0x[a-fA-F0-9]\{40\}\)".*/\1/p')
-if [[ -z "$TRAP_ADDRESS" ]]; then
-    echo "Error: Failed to extract Trap Address from drosera.toml."
-    exit 1
+TRAP_ADDRESS=$(awk '/\[traps\.mytrap\]/ {p=1} p && /address =/ {print $3; exit}' ~/my-drosera-trap/drosera.toml | tr -d '"')
+if [[ -z "$TRAP_ADDRESS" || ! "$TRAP_ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]]; then
+    echo "Error: Failed to extract a valid Trap Address from drosera.toml."
+    read -p "Enter a valid Trap Config address (e.g., 0x1234567890abcdef1234567890abcdef12345678): " TRAP_ADDRESS
+    if [[ ! "$TRAP_ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]]; then
+        echo "Error: Invalid Trap Config address entered. Exiting."
+        exit 1
+    fi
 fi
 echo "Trap Address extracted: $TRAP_ADDRESS"
-source /root/.bashrc
-
-# Step 4.2: Confirm Send Bloom
-echo "Please go to https://app.drosera.io/, open your Trap ($TRAP_ADDRESS), and click 'Send Bloom Boost' to deposit some Holesky ETH."
-read -p "Have you completed the Send Bloom on https://app.drosera.io/? (y/n): " bloom_confirmed
-if [[ "$bloom_confirmed" != "y" ]]; then
-    echo "Send Bloom not confirmed. Exiting."
-    exit 1
-fi
+sleep 3
 source /root/.bashrc
 
 # Step 5: Whitelist Operators
@@ -412,19 +408,6 @@ source /root/.bashrc
 echo "Step 8: Opting in Operators..."
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 
-# Validate Trap Config address
-echo "Validating Trap Config address..."
-if [[ ! "$TRAP_ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]]; then
-    echo "Error: Invalid Trap Config address format. Must be 40 hexadecimal characters with 0x prefix."
-    read -p "Enter a valid Trap Config address (e.g., 0x1234567890abcdef1234567890abcdef12345678): " TRAP_ADDRESS
-    if [[ ! "$TRAP_ADDRESS" =~ ^0x[0-9a-fA-F]{40}$ ]]; then
-        echo "Error: Still invalid Trap Config address. Exiting."
-        exit 1
-    fi
-fi
-echo "Trap Config address is valid."
-sleep 3
-
 # Opt-in Operator 1 (manual via website)
 echo "Please go to https://app.drosera.io/, log in with Operator 1 address ($OPERATOR1_ADDRESS), find your Trap ($TRAP_ADDRESS) in the dashboard, and click the 'Optin' button."
 read -p "Have you completed the Optin for Operator 1 on https://app.drosera.io/? (y/n): " optin1_confirmed
@@ -436,41 +419,14 @@ echo "Operator 1 opt-in confirmed."
 sleep 3
 source /root/.bashrc
 
-# Validate Operator 2 private key
-echo "Validating Operator 2 private key..."
-if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
-    echo "Error: Invalid Operator 2 private key format. Must be 64 hexadecimal characters."
-    read -p "Enter a valid Operator 2 private key: " OPERATOR2_PRIVATE_KEY
-    if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
-        echo "Error: Still invalid Operator 2 private key. Exiting."
-        exit 1
-    fi
+# Opt-in Operator 2 (manual via website)
+echo "Please go to https://app.drosera.io/, log in with Operator 2 address ($OPERATOR2_ADDRESS), find your Trap ($TRAP_ADDRESS) in the dashboard, and click the 'Optin' button."
+read -p "Have you completed the Optin for Operator 2 on https://app.drosera.io/? (y/n): " optin2_confirmed
+if [[ "$optin2_confirmed" != "y" ]]; then
+    echo "Error: Optin for Operator 2 not confirmed. Exiting."
+    exit 1
 fi
-echo "Operator 2 private key is valid."
-sleep 3
-
-# Opt-in Operator 2 (via code)
-echo "Attempting to opt-in Operator 2..."
-max_attempts=5
-attempt=1
-while [[ $attempt -le $max_attempts ]]; do
-    echo "Attempt $attempt/$max_attempts: Opting in Operator 2..."
-    drosera-operator optin --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR2_PRIVATE_KEY" --trap-config-address "$TRAP_ADDRESS"
-    if [[ $? -eq 0 ]]; then
-        echo "Success: Operator 2 opted in."
-        break
-    else
-        echo "Failed to opt-in Operator 2."
-        ((attempt++))
-        if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 15 seconds..."
-            sleep 15
-        else
-            echo "Error: Failed to opt-in Operator 2 after $max_attempts attempts. Exiting."
-            exit 1
-        fi
-    fi
-done
+echo "Operator 2 opt-in confirmed."
 sleep 3
 source /root/.bashrc
 

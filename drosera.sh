@@ -341,7 +341,7 @@ curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/d
 sleep 3
 tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz || true
 sleep 3
-./drosera-operator --version || true
+drosera-operator --version || true
 sleep 3
 sudo cp drosera-operator /usr/bin || true
 sleep 3
@@ -419,14 +419,41 @@ echo "Operator 1 opt-in confirmed."
 sleep 3
 source /root/.bashrc
 
-# Opt-in Operator 2 (manual via website)
-echo "Please go to https://app.drosera.io/, log in with Operator 2 address ($OPERATOR2_ADDRESS), find your Trap ($TRAP_ADDRESS) in the dashboard, and click the 'Optin' button."
-read -p "Have you completed the Optin for Operator 2 on https://app.drosera.io/? (y/n): " optin2_confirmed
-if [[ "$optin2_confirmed" != "y" ]]; then
-    echo "Error: Optin for Operator 2 not confirmed. Exiting."
-    exit 1
+# Validate Operator 2 private key
+echo "Validating Operator 2 private key..."
+if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    echo "Error: Invalid Operator 2 private key format. Must be 64 hexadecimal characters."
+    read -p "Enter a valid Operator 2 private key: " OPERATOR2_PRIVATE_KEY
+    if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+        echo "Error: Still invalid Operator 2 private key. Exiting."
+        exit 1
+    fi
 fi
-echo "Operator 2 opt-in confirmed."
+echo "Operator 2 private key is valid."
+sleep 3
+
+# Opt-in Operator 2 (via code)
+echo "Attempting to opt-in Operator 2..."
+max_attempts=5
+attempt=1
+while [[ $attempt -le $max_attempts ]]; do
+    echo "Attempt $attempt/$max_attempts: Opting in Operator 2..."
+    drosera-operator optin --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR2_PRIVATE_KEY" --trap-config-address "$TRAP_ADDRESS"
+    if [[ $? -eq 0 ]]; then
+        echo "Success: Operator 2 opted in."
+        break
+    else
+        echo "Failed to opt-in Operator 2."
+        ((attempt++))
+        if [[ $attempt -le $max_attempts ]]; then
+            echo "Retrying in 15 seconds..."
+            sleep 15
+        else
+            echo "Error: Failed to opt-in Operator 2 after $max_attempts attempts. Exiting."
+            exit 1
+        fi
+    fi
+done
 sleep 3
 source /root/.bashrc
 

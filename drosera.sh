@@ -295,6 +295,17 @@ echo "Trap Address extracted: $TRAP_ADDRESS"
 sleep 3
 source /root/.bashrc
 
+# Step 4.2: Confirm Send Bloom
+echo "Please go to https://app.drosera.io/, open your Trap ($TRAP_ADDRESS), and click 'Send Bloom Boost' to deposit some Holesky ETH."
+read -p "Have you completed the Send Bloom on https://app.drosera.io/? (y/n): " bloom_confirmed
+if [[ "$bloom_confirmed" != "y" ]]; then
+    echo "Error: Send Bloom not confirmed. Exiting."
+    exit 1
+fi
+echo "Send Bloom confirmed."
+sleep 3
+source /root/.bashrc
+
 # Step 5: Whitelist Operators
 echo "Step 5: Whitelisting Operators..."
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }

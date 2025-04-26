@@ -74,8 +74,17 @@ Follow these steps to clone, configure, and run the script:
      ```bash
      cd ~/Drosera-Network
      docker logs drosera-node1
+     ```
+or
+
+      ```bash
+     cd ~/Drosera-Network
      docker logs drosera-node2
      ```
+
+   - Check That you Have Green Block Log on your Dashboard ( Wait For At Least 1 Hour To Check )
+
+![Screenshot 2025-04-26 105901](https://github.com/user-attachments/assets/6ec00420-7e4c-49c9-a64a-0efc2dfccb2c)
 
 2. **Optional Command (Restart and Dryrun Node)**:
    - To fetch blocks again and restart the node, run:

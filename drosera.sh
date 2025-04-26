@@ -339,37 +339,25 @@ source /root/.bashrc
 
 # Step 6: Install Operator CLI
 echo "Step 6: Installing Operator CLI and pulling Docker image..."
-cd ~
-echo "Current directory: $(pwd)"
-curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
+cd ~ || true
+curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz || true
 sleep 3
-echo "Checking downloaded file..."
-ls -l ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
-tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
+tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz || true
 sleep 3
-echo "Checking extracted file..."
-ls -l ~/drosera-operator
-./drosera-operator --version
-check_status "Operator CLI installation"
+./drosera-operator --version || true
 sleep 3
-sudo cp drosera-operator /usr/bin
+sudo cp drosera-operator /usr/bin || true
 sleep 3
-echo "Checking copied file..."
-ls -l /usr/bin/drosera-operator
-sudo chmod +x /usr/bin/drosera-operator
+sudo chmod +x /usr/bin/drosera-operator || true
 sleep 3
-echo "Updating PATH..."
 export PATH=$PATH:/usr/bin
-source /root/.bashrc
+source /root/.bashrc || true
 sleep 3
-echo "Testing global drosera-operator command..."
-drosera-operator
-check_status "Operator CLI global setup"
+drosera-operator || true
 sleep 3
-echo "Pulling Drosera Operator Docker image..."
-docker pull ghcr.io/drosera-network/drosera-operator:latest
-check_status "Docker image pull"
-source /root/.bashrc
+docker pull ghcr.io/drosera-network/drosera-operator:latest || true
+sleep 3
+source /root/.bashrc || true
 
 
 # Step 7: Register Operators

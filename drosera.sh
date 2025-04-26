@@ -537,6 +537,30 @@ check_status "Docker Operators setup"
 source /root/.bashrc
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
 
+# ... (بقیه اسکریپت تا Step 11)
+
+# Step 11: Configure and Run Operators (Docker Method)
+# ... (کدهای Step 11)
+
+# Step 12: Restart and Dryrun Node
+echo "Step 12: Restarting node and running dryrun to fetch blocks..."
+pkill -9 drosera-operator || { echo "Warning: Failed to stop drosera-operator processes, continuing..."; true; }
+sleep 3
+source /root/.bashrc
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+source /root/.bashrc
+echo "Running drosera dryrun..."
+drosera dryrun || { echo "Warning: Failed to run drosera dryrun, continuing..."; true; }
+sleep 3
+source /root/.bashrc
+cd ~
+cd ~/Drosera-Network || { echo "Error: Cannot change to ~/Drosera-Network directory."; exit 1; }
+echo "Restarting node with docker compose..."
+docker compose up -d || { echo "Warning: Failed to restart node with docker compose, continuing..."; true; }
+sleep 3
+source /root/.bashrc
+echo "Node restarted and dryrun completed."
+
 echo "Drosera Network Testnet Setup Complete for Two Operators!"
 echo "Check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness."
 echo "Follow me on Twitter for more: https://x.com/0xCrypton_"

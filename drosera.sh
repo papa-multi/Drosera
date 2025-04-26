@@ -382,8 +382,8 @@ while [[ $attempt -le $max_attempts ]]; do
         echo "Failed to register Operator 1."
         ((attempt++))
         if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
-            sleep 10
+            echo "Retrying in 30 seconds..."
+            sleep 30
         else
             echo "Error: Failed to register Operator 1 after $max_attempts attempts."
             exit 1
@@ -404,8 +404,8 @@ while [[ $attempt -le $max_attempts ]]; do
         echo "Failed to register Operator 2."
         ((attempt++))
         if [[ $attempt -le $max_attempts ]]; then
-            echo "Retrying in 10 seconds..."
-            sleep 10
+            echo "Retrying in 30 seconds..."
+            sleep 30
         else
             echo "Error: Failed to register Operator 2 after $max_attempts attempts."
             exit 1

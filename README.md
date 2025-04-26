@@ -5,37 +5,29 @@
 # README: Drosera Network Testnet Setup Script #
 ## Welcome to the Drosera Network Testnet Setup Script! This script automates the process of setting up and deploying a Trap with two Operators on the Drosera testnet. Follow the steps below to run the script successfully and get your node up and running 
 
-#📋 Prerequisites
+## 📋 Prerequisites
+
 Before running the script, ensure you have the following:
 
-A VPS/Server:
+- **A VPS/Server**:
+  - **Operating System**: Ubuntu (preferably 20.04 or 22.04)
+  - **Specifications**: Minimum 2 CPU cores, 4GB RAM, 20GB free disk space
+  - **Internet**: Stable connection
 
-#OS: Ubuntu (preferably 20.04 or 22.04)
+- **Two Ethereum Holesky Wallets**:
+  - **Address 1**: Used to deploy the Trap
+  - **Address 2**: Used as the second Operator
+  - **Funding**: Both wallets must have sufficient Holesky ETH. Fund them using a Holesky faucet (e.g., [Holesky Faucet](https://faucet.holesky.eth.limo/))
+  - **Details**: Prepare the private keys (64 hexadecimal characters, no `0x`) and public addresses (42 characters with `0x`)
 
-#Specs: At least 2 CPU cores, 4GB RAM, 20GB free disk space
+- **Ethereum Holesky RPC URL**:
+  - Obtain a valid RPC URL from a provider like [Alchemy](https://www.alchemy.com/), [QuickNode](https://www.quicknode.com/), or use a public node (e.g., `https://ethereum-holesky-rpc.publicnode.com`)
+  - Example: `https://eth-holesky.alchemyapi.io/v2/your-api-key`
 
-#Internet: Stable connection
+- **GitHub Account**:
+  - Provide your GitHub email and username for configuring Git during the setup
 
-#Two Ethereum Holesky Wallets:
-
-Address 1: Used to deploy the Trap.
-
-Address 2: Used as the second Operator.
-
-#Both wallets must have sufficient Holesky ETH. Fund them using a Holesky faucet (e.g., Holesky Faucet).
-
-#Have the private keys (64 hexadecimal characters, no 0x) and public addresses (42 characters with 0x) ready.
-
-#Ethereum Holesky RPC URL:
-
-Get a valid RPC URL from a provider like Alchemy, QuickNode, or use a public node (e.g., https://ethereum-holesky-rpc.publicnode.com).
-
-Example: https://eth-holesky.alchemyapi.io/v2/your-api-key
-
-#GitHub Account:
-
-You’ll need your GitHub email and username for configuring Git during the setup.
-
+============================================================================================
 
 🚀 Installation and Setup
 Follow these steps to clone, configure, and run the script:

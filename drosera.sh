@@ -370,13 +370,18 @@ source /root/.bashrc || true
 
 # Step 7: Register Operators
 echo "Step 7: Registering Operators..."
+cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
+
+# Register Operator 1
+echo "Attempting to register Operator 1..."
 max_attempts=3
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Registering Operator 1..."
-    drosera-operator register --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR1_PRIVATE_KEY"
-    if [[ $? -eq 0 ]]; then
-        echo "Success: Operator 1 registered."
+    drosera-operator register --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR1_PRIVATE_KEY" 2>&1 | tee /tmp/register_output.txt
+    if [[ $? -eq 0 || $(cat /tmp/register_output.txt) =~ "OperatorAlreadyRegistered" ]]; then
+        echo "Success: Operator 1 registered or already registered."
+        rm -f /tmp/register_output.txt
         break
     else
         echo "Failed to register Operator 1."
@@ -385,20 +390,24 @@ while [[ $attempt -le $max_attempts ]]; do
             echo "Retrying in 30 seconds..."
             sleep 30
         else
-            echo "Error: Failed to register Operator 1 after $max_attempts attempts."
+            echo "Error: Failed to register Operator 1 after $max_attempts attempts. Exiting."
+            rm -f /tmp/register_output.txt
             exit 1
         fi
     fi
 done
-check_status "Operator 1 registration"
+sleep 3
 source /root/.bashrc
 
+# Register Operator 2
+echo "Attempting to register Operator 2..."
 attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Registering Operator 2..."
-    drosera-operator register --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR2_PRIVATE_KEY"
-    if [[ $? -eq 0 ]]; then
-        echo "Success: Operator 2 registered."
+    drosera-operator register --eth-rpc-url "$ETH_RPC_URL" --eth-private-key "$OPERATOR2_PRIVATE_KEY" 2>&1 | tee /tmp/register_output.txt
+    if [[ $? -eq 0 || $(cat /tmp/register_output.txt) =~ "OperatorAlreadyRegistered" ]]; then
+        echo "Success: Operator 2 registered or already registered."
+        rm -f /tmp/register_output.txt
         break
     else
         echo "Failed to register Operator 2."
@@ -407,12 +416,13 @@ while [[ $attempt -le $max_attempts ]]; do
             echo "Retrying in 30 seconds..."
             sleep 30
         else
-            echo "Error: Failed to register Operator 2 after $max_attempts attempts."
+            echo "Error: Failed to register Operator 2 after $max_attempts attempts. Exiting."
+            rm -f /tmp/register_output.txt
             exit 1
         fi
     fi
 done
-check_status "Operator 2 registration"
+sleep 3
 source /root/.bashrc
 
 # Step 8: Opt-in Operators
@@ -530,11 +540,6 @@ docker compose up -d
 check_status "Docker Operators setup"
 source /root/.bashrc
 cd ~/my-drosera-trap || { echo "Error: Cannot change to ~/my-drosera-trap directory."; exit 1; }
-
-# ... (بقیه اسکریپت تا Step 11)
-
-# Step 11: Configure and Run Operators (Docker Method)
-# ... (کدهای Step 11)
 
 # Step 12: Restart and Dryrun Node
 echo "Step 12: Restarting node and running dryrun to fetch blocks..."

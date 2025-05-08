@@ -366,6 +366,8 @@ sleep 3
 docker pull ghcr.io/drosera-network/drosera-operator:latest || true
 sleep 3
 source /root/.bashrc || true
+sleep 3
+sed -i '/^drosera_\(rpc\|team\) =/d' drosera.toml && sed -i '2i drosera_team = "https://relayer.testnet.drosera.io/"' drosera.toml
 
 
 # Step 7: Register Operators

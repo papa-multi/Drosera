@@ -19,7 +19,7 @@ docker pull ghcr.io/drosera-network/drosera-operator:latest
 
 cd && cd my-drosera-trap
 
-sed -i 's|drosera_rpc = "https://seed-node.testnet.drosera.io"|drosera_rpc = "https://relayer.testnet.drosera.io/"|' drosera.toml
+sed -i 's|drosera_rpc = "https://seed-node.testnet.drosera.io"|drosera_team = "https://relayer.testnet.drosera.io/"|' drosera.toml
 
 cd && cd my-drosera-trap && source /root/.bashrc && drosera dryrun
 

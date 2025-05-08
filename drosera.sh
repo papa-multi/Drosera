@@ -348,7 +348,7 @@ source /root/.bashrc
 # Step 6: Install Operator CLI
 echo "Step 6: Installing Operator CLI and pulling Docker image..."
 cd ~ || true
-curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz || true
+curl -LO https://github.com/drosera-network/releases/releases/download/v1.17.1/drosera-operator-v1.17.1-x86_64-unknown-linux-gnu.tar.gz || true
 sleep 3
 tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz || true
 sleep 3

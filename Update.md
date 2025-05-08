@@ -18,11 +18,19 @@ drosera-operator --version
 docker pull ghcr.io/drosera-network/drosera-operator:latest
 
 cd && cd my-drosera-trap
-
-sed -i 's|drosera_rpc = "https://seed-node.testnet.drosera.io"|drosera_team = "https://relayer.testnet.drosera.io/"|' drosera.toml
+sed -i '/^drosera_rpc =/d' drosera.toml && sed -i '2i drosera_team = "https://relayer.testnet.drosera.io/"' drosera.toml
 
 cd && cd my-drosera-trap && source /root/.bashrc && drosera dryrun
 
+```
+
+Put Your Private key 
+
+```
+DROSERA_PRIVATE_KEY=your_private_key drosera apply
+```
+
+```
 # Restart node
 cd && cd Drosera-Network
 docker compose up -d && cd

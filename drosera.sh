@@ -24,6 +24,20 @@ validate_private_key() {
     fi
 }
 
+# Function to update drosera.toml with ethereum_rpc
+update_drosera_toml() {
+    local toml_file=~/my-drosera-trap/drosera.toml
+    local step=$1
+    echo "Updating drosera.toml for $step..."
+    # Remove any existing ethereum_rpc, etherum_rpc, and drosera_team lines
+    sed -i '/^ethereum_rpc=/d' "$toml_file"
+    sed -i '/^etherum_rpc=/d' "$toml_file"
+    sed -i '/^drosera_\(rpc\|team\)=/d' "$toml_file"
+    # Add ethereum_rpc as the first line
+    sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" "$toml_file"
+    check_status "Updating drosera.toml for $step"
+}
+
 # Clean up previous script runs
 echo "Cleaning up previous script runs..."
 pkill -f drosera-operator
@@ -46,7 +60,7 @@ source /root/.bashrc
 clear
 figlet -f big "Crypton"
 echo "============================================================="
-echo "Follow me on Twitter for updates and more: https://x.com/0xCrypton_"
+echo "Follow me on Twitter for updates and more: https://x.com/ostadkachal"
 echo "============================================================="
 echo ""
 
@@ -251,17 +265,15 @@ git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
 forge init -t drosera-network/trap-foundry-template
 check_status "Forge init"
+# Update drosera.toml immediately after forge init
+update_drosera_toml "post-forge-init"
 curl -fsSL https://bun.sh/install | bash
 source /root/.bashrc
 bun install
 forge build
 check_status "Forge build"
-# Update drosera.toml with ethereum_rpc
-sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
-sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
-check_status "Updating drosera.toml with ethereum_rpc"
+# Update drosera.toml again before drosera apply
+update_drosera_toml "pre-deploy"
 source /root/.bashrc
 
 # Deploy Trap
@@ -289,11 +301,7 @@ while [[ $attempt -le $max_attempts ]]; do
 done
 check_status "Trap deployment"
 # Re-ensure ethereum_rpc after drosera apply
-sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
-sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
-check_status "Re-updating drosera.toml with ethereum_rpc after deploy"
+update_drosera_toml "post-deploy"
 source /root/.bashrc
 
 # Step 4.1: Extract Trap Address from drosera.toml
@@ -360,11 +368,7 @@ while [[ $attempt -le $max_attempts ]]; do
 done
 check_status "Trap configuration update"
 # Re-ensure ethereum_rpc after drosera apply
-sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
-sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
-check_status "Re-updating drosera.toml with ethereum_rpc after whitelist"
+update_drosera_toml "post-whitelist"
 source /root/.bashrc
 
 # Step 6: Install Operator CLI
@@ -564,7 +568,7 @@ services:
       - "31316:31316"
     volumes:
       - drosera_data2:/data
-    command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key $OPERATOR2_PRIVATE_KEY --listen-address 0.0.0.0 --network-external-p2p-address $VPS_IP --disable-dnr-confirmation true
+    command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 31316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key $OPERATOR2_PRIVATE_KEY --listen-address 0.0.0.0 --network-external-p2p-address $VPS_IP --disable-dnr-confirmation true
     restart: always
 volumes:
   drosera_data1:
@@ -605,4 +609,4 @@ echo "Node restarted and dryrun completed."
 
 echo "Drosera Network Testnet Setup Complete for Two Operators!"
 echo "Check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness."
-echo "Follow me on Twitter for more: https://x.com/0xCrypton_"
+echo "Follow me on Twitter for more: https://x.com/ostadkachal"

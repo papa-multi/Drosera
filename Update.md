@@ -20,6 +20,8 @@ docker pull ghcr.io/drosera-network/drosera-operator:latest
 cd && cd my-drosera-trap
 sed -i '/^drosera_team =/d' drosera.toml && sed -i '2i drosera_rpc = "https://relayer.testnet.drosera.io/"' drosera.toml
 
+curl -L https://app.drosera.io/install | bash
+
 cd && cd my-drosera-trap && source /root/.bashrc && drosera dryrun
 
 ```

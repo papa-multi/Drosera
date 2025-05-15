@@ -29,12 +29,24 @@ update_drosera_toml() {
     local toml_file=~/my-drosera-trap/drosera.toml
     local step=$1
     echo "Updating drosera.toml for $step..."
-    # Remove any existing ethereum_rpc, etherum_rpc, and drosera_team lines
-    sed -i '/^ethereum_rpc=/d' "$toml_file"
-    sed -i '/^etherum_rpc=/d' "$toml_file"
-    sed -i '/^drosera_\(rpc\|team\)=/d' "$toml_file"
-    # Add ethereum_rpc as the first line
-    sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" "$toml_file"
+    # Create a temporary file
+    local temp_file=$(mktemp)
+    # Keep only lines that don't match ethereum_rpc, etherum_rpc, or drosera_team
+    awk '!/^(ethereum_rpc|etherum_rpc|drosera_team)=/' "$toml_file" > "$temp_file" 2>/dev/null || true
+    # Start the file with the desired ethereum_rpc
+    echo "ethereum_rpc = \"$ETHEREUM_RPC_URL\"" > "$toml_file"
+    # Append the filtered content
+    cat "$temp_file" >> "$toml_file"
+    rm "$temp_file"
+    # Check for duplicates
+    local count=$(grep -c '^ethereum_rpc=' "$toml_file")
+    echo "Number of ethereum_rpc lines after $step: $count"
+    if [[ $count -gt 1 ]]; then
+        echo "Warning: Multiple ethereum_rpc lines detected!"
+    fi
+    # Print the file for debugging
+    echo "Current drosera.toml after $step:"
+    cat "$toml_file"
     check_status "Updating drosera.toml for $step"
 }
 
@@ -60,7 +72,7 @@ source /root/.bashrc
 clear
 figlet -f big "Crypton"
 echo "============================================================="
-echo "Follow me on Twitter for updates and more: https://x.com/ostadkachal"
+echo "Follow me on Twitter for updates and more: https://x.com/0xCrypton_"
 echo "============================================================="
 echo ""
 
@@ -272,7 +284,7 @@ source /root/.bashrc
 bun install
 forge build
 check_status "Forge build"
-# Update drosera.toml again before drosera apply
+# Update drosera.toml before drosera apply
 update_drosera_toml "pre-deploy"
 source /root/.bashrc
 
@@ -342,6 +354,8 @@ private_trap = true
 whitelist = ["$OPERATOR1_ADDRESS","$OPERATOR2_ADDRESS"]
 EOF
 check_status "Appending new whitelist to drosera.toml"
+# Update drosera.toml before drosera apply
+update_drosera_toml "pre-whitelist"
 # Add delay to handle ConfigUpdateCooldownNotElapsed
 echo "Waiting 60 seconds to ensure cooldown period has elapsed..."
 sleep 60
@@ -609,4 +623,4 @@ echo "Node restarted and dryrun completed."
 
 echo "Drosera Network Testnet Setup Complete for Two Operators!"
 echo "Check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness."
-echo "Follow me on Twitter for more: https://x.com/ostadkachal"
+echo "Follow me on Twitter for more: https://x.com/0xCrypton_"

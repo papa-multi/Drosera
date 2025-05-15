@@ -46,7 +46,7 @@ source /root/.bashrc
 clear
 figlet -f big "Crypton"
 echo "============================================================="
-echo "Follow me on Twitter for updates and more: https://x.com/ostadkachal"
+echo "Follow me on Twitter for updates and more: https://x.com/0xCrypton_"
 echo "============================================================="
 echo ""
 
@@ -256,11 +256,11 @@ source /root/.bashrc
 bun install
 forge build
 check_status "Forge build"
-# Update drosera.toml with drosera_team and ethereum_rpc
+# Update drosera.toml with ethereum_rpc
 sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
 sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
 sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"\ndrosera_team = \"https://relayer.testnet.drosera.io/\"" ~/my-drosera-trap/drosera.toml
+sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
 check_status "Updating drosera.toml with ethereum_rpc"
 source /root/.bashrc
 
@@ -288,6 +288,12 @@ while [[ $attempt -le $max_attempts ]]; do
     fi
 done
 check_status "Trap deployment"
+# Re-ensure ethereum_rpc after drosera apply
+sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
+sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
+sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
+sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
+check_status "Re-updating drosera.toml with ethereum_rpc after deploy"
 source /root/.bashrc
 
 # Step 4.1: Extract Trap Address from drosera.toml
@@ -353,6 +359,12 @@ while [[ $attempt -le $max_attempts ]]; do
     fi
 done
 check_status "Trap configuration update"
+# Re-ensure ethereum_rpc after drosera apply
+sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
+sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
+sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
+sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
+check_status "Re-updating drosera.toml with ethereum_rpc after whitelist"
 source /root/.bashrc
 
 # Step 6: Install Operator CLI
@@ -552,7 +564,7 @@ services:
       - "31316:31316"
     volumes:
       - drosera_data2:/data
-    command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 31316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key $OPERATOR2_PRIVATE_KEY --listen-address 0.0.0.0 --network-external-p2p-address $VPS_IP --disable-dnr-confirmation true
+    command: node --db-file-path /data/drosera.db --network-p2p-port 31315 --server-port 316 --eth-rpc-url $ETH_RPC_URL --eth-backup-rpc-url https://holesky.drpc.org --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 --eth-private-key $OPERATOR2_PRIVATE_KEY --listen-address 0.0.0.0 --network-external-p2p-address $VPS_IP --disable-dnr-confirmation true
     restart: always
 volumes:
   drosera_data1:
@@ -593,4 +605,4 @@ echo "Node restarted and dryrun completed."
 
 echo "Drosera Network Testnet Setup Complete for Two Operators!"
 echo "Check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness."
-echo "Follow me on Twitter for more: https://x.com/ostadkachal"
+echo "Follow me on Twitter for more: https://x.com/0xCrypton_"

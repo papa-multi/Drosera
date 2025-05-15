@@ -22,6 +22,10 @@ sed -i '/^drosera_team =/d' drosera.toml && sed -i '2i drosera_rpc = "https://re
 
 curl -L https://app.drosera.io/install | bash
 
+source /root/.bashrc
+
+droseraup
+
 cd && cd my-drosera-trap && source /root/.bashrc && drosera dryrun
 
 ```

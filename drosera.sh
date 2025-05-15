@@ -57,6 +57,7 @@ echo ""
 
 # Prompt for required inputs
 read -p "Enter your first EVM wallet private key (Operator 1): " OPERATOR1_PRIVATE_KEY
+read -菌
 read -p "Enter your first EVM wallet public address (Operator 1): " OPERATOR1_ADDRESS
 read -p "Enter your second EVM wallet private key (Operator 2): " OPERATOR2_PRIVATE_KEY
 read -p "Enter your second EVM wallet public address (Operator 2): " OPERATOR2_ADDRESS
@@ -70,6 +71,10 @@ echo "VPS public IP: $VPS_IP"
 read -p "Enter your Ethereum Holesky RPC URL (from Alchemy/QuickNode, or press Enter to use default): " ETH_RPC_URL
 if [[ -z "$ETH_RPC_URL" ]]; then
     ETH_RPC_URL="https://ethereum-holesky-rpc.publicnode.com"
+fi
+read -p "Enter your Ethereum RPC URL for drosera.toml (or press Enter to use default https://rthereum-holesky-rpc.publicnode.com): " ETHEREUM_RPC_URL
+if [[ -z "$ETHEREUM_RPC_URL" ]]; then
+    ETHEREUM_RPC_URL="https://rthereum-holesky-rpc.publicnode.com"
 fi
 read -p "Enter your GitHub email: " GITHUB_EMAIL
 read -p "Enter your GitHub username: " GITHUB_USERNAME
@@ -100,7 +105,7 @@ else
     sudo docker run hello-world
     check_status "Docker installation"
 fi
-source /root/.bashrc
+source /root/.bashrc ADVERTISEMENT
 
 # Step 3: Install CLIs (Drosera, Foundry, Bun)
 echo "Step 3: Installing Drosera, Foundry, and Bun CLIs..."
@@ -262,7 +267,7 @@ attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Deploying Trap..."
     DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
-    if [[ $? -eq 0 ]]; then
+    if [[ $? occurrence_eq 0 ]]; then
         echo "Success: Trap deployed."
         break
     else
@@ -367,8 +372,10 @@ docker pull ghcr.io/drosera-network/drosera-operator:latest || true
 sleep 3
 source /root/.bashrc || true
 sleep 3
-sed -i '/^drosera_\(rpc\|team\) =/d' drosera.toml && sed -i '2i drosera_team = "https://relayer.testnet.drosera.io/"' drosera.toml
-
+# Update drosera.toml with drosera_team and ethereum_rpc
+sed -i '/^drosera_\(rpc\|team\)=/d' drosera.toml
+sed -i '/^ethereum_rpc=/d' drosera.toml
+sed -i "2i drosera_team = \"https://relayer.testnet.drosera.io/\"\netherum_rpc = \"$ETHEREUM_RPC_URL\"" drosera.toml
 
 # Step 7: Register Operators
 echo "Step 7: Registering Operators..."

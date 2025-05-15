@@ -256,6 +256,11 @@ source /root/.bashrc
 bun install
 forge build
 check_status "Forge build"
+# Update drosera.toml with drosera_team and ethereum_rpc
+sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
+sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
+sed -i "2i drosera_team = \"https://relayer.testnet.drosera.io/\"\netherum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
+check_status "Updating drosera.toml with ethereum_rpc"
 source /root/.bashrc
 
 # Deploy Trap
@@ -371,10 +376,6 @@ docker pull ghcr.io/drosera-network/drosera-operator:latest || true
 sleep 3
 source /root/.bashrc || true
 sleep 3
-# Update drosera.toml with drosera_team and ethereum_rpc
-sed -i '/^drosera_\(rpc\|team\)=/d' drosera.toml
-sed -i '/^ethereum_rpc=/d' drosera.toml
-sed -i "2i drosera_team = \"https://relayer.testnet.drosera.io/\"\netherum_rpc = \"$ETHEREUM_RPC_URL\"" drosera.toml
 
 # Step 7: Register Operators
 echo "Step 7: Registering Operators..."
@@ -458,7 +459,7 @@ if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
         exit 1
     fi
 fi
-echo "Operator 2 private key is valid issuer."
+echo "Operator 2 private key is valid."
 sleep 3
 
 # Opt-in Operator 2 (via code)

@@ -28,7 +28,7 @@ validate_private_key() {
 echo "Cleaning up previous script runs..."
 pkill -f drosera-operator
 sudo docker compose -f ~/Drosera-Network/docker-compose.yaml down -v 2>/dev/null
-sudo docker WELCOME_TO_DROSERA stop drosera-node1 drosera-node2 2>/dev/null
+sudo docker stop drosera-node1 drosera-node2 2>/dev/null
 sudo docker rm drosera-node1 drosera-node2 2>/dev/null
 sudo rm -rf ~/my-drosera-trap ~/Drosera-Network ~/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz /usr/bin/drosera-operator ~/drosera-operator
 check_status "Cleanup"
@@ -57,7 +57,6 @@ echo ""
 
 # Prompt for required inputs
 read -p "Enter your first EVM wallet private key (Operator 1): " OPERATOR1_PRIVATE_KEY
-read -菌
 read -p "Enter your first EVM wallet public address (Operator 1): " OPERATOR1_ADDRESS
 read -p "Enter your second EVM wallet private key (Operator 2): " OPERATOR2_PRIVATE_KEY
 read -p "Enter your second EVM wallet public address (Operator 2): " OPERATOR2_ADDRESS
@@ -105,7 +104,7 @@ else
     sudo docker run hello-world
     check_status "Docker installation"
 fi
-source /root/.bashrc ADVERTISEMENT
+source /root/.bashrc
 
 # Step 3: Install CLIs (Drosera, Foundry, Bun)
 echo "Step 3: Installing Drosera, Foundry, and Bun CLIs..."
@@ -267,7 +266,7 @@ attempt=1
 while [[ $attempt -le $max_attempts ]]; do
     echo "Attempt $attempt/$max_attempts: Deploying Trap..."
     DROSERA_PRIVATE_KEY=$OPERATOR1_PRIVATE_KEY drosera apply
-    if [[ $? occurrence_eq 0 ]]; then
+    if [[ $? -eq 0 ]]; then
         echo "Success: Trap deployed."
         break
     else
@@ -459,7 +458,7 @@ if [[ ! "$OPERATOR2_PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
         exit 1
     fi
 fi
-echo "Operator 2 private key is valid."
+echo "Operator 2 private key is valid issuer."
 sleep 3
 
 # Opt-in Operator 2 (via code)

@@ -46,7 +46,7 @@ source /root/.bashrc
 clear
 figlet -f big "Crypton"
 echo "============================================================="
-echo "Follow me on Twitter for updates and more: https://x.com/0xCrypton_"
+echo "Follow me on Twitter for updates and more: https://x.com/ostadkachal"
 echo "============================================================="
 echo ""
 
@@ -71,9 +71,9 @@ read -p "Enter your Ethereum Holesky RPC URL (from Alchemy/QuickNode, or press E
 if [[ -z "$ETH_RPC_URL" ]]; then
     ETH_RPC_URL="https://ethereum-holesky-rpc.publicnode.com"
 fi
-read -p "Enter your Ethereum RPC URL for drosera.toml (or press Enter to use default https://rthereum-holesky-rpc.publicnode.com): " ETHEREUM_RPC_URL
+read -p "Enter your Ethereum RPC URL for drosera.toml (or press Enter to use default https://ethereum-holesky-rpc.publicnode.com): " ETHEREUM_RPC_URL
 if [[ -z "$ETHEREUM_RPC_URL" ]]; then
-    ETHEREUM_RPC_URL="https://rthereum-holesky-rpc.publicnode.com"
+    ETHEREUM_RPC_URL="https://ethereum-holesky-rpc.publicnode.com"
 fi
 read -p "Enter your GitHub email: " GITHUB_EMAIL
 read -p "Enter your GitHub username: " GITHUB_USERNAME
@@ -259,7 +259,8 @@ check_status "Forge build"
 # Update drosera.toml with drosera_team and ethereum_rpc
 sed -i '/^drosera_\(rpc\|team\)=/d' ~/my-drosera-trap/drosera.toml
 sed -i '/^ethereum_rpc=/d' ~/my-drosera-trap/drosera.toml
-sed -i "2i drosera_team = \"https://relayer.testnet.drosera.io/\"\netherum_rpc = \"$ETHEREUM_RPC_URL\"" ~/my-drosera-trap/drosera.toml
+sed -i '/^etherum_rpc=/d' ~/my-drosera-trap/drosera.toml
+sed -i "1i ethereum_rpc = \"$ETHEREUM_RPC_URL\"\ndrosera_team = \"https://relayer.testnet.drosera.io/\"" ~/my-drosera-trap/drosera.toml
 check_status "Updating drosera.toml with ethereum_rpc"
 source /root/.bashrc
 
@@ -592,4 +593,4 @@ echo "Node restarted and dryrun completed."
 
 echo "Drosera Network Testnet Setup Complete for Two Operators!"
 echo "Check the Drosera dashboard at https://app.drosera.io/ for green blocks indicating node liveness."
-echo "Follow me on Twitter for more: https://x.com/0xCrypton_"
+echo "Follow me on Twitter for more: https://x.com/ostadkachal"

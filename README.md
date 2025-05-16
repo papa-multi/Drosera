@@ -38,7 +38,7 @@ Follow these steps to clone, configure, and run the script:
 1. **Clone the Repository**:
    - Clone the Drosera script from GitHub to your server:
      ```bash
-     git clone https://github.com/sinak1023/Drosera/
+     git clone https://github.com/papa-multi/Drosera.git
      cd Drosera && chmod +x drosera.sh && ./drosera.sh
      ```
 
